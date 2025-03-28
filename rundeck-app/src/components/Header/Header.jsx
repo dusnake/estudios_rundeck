@@ -12,7 +12,7 @@ export default function Header() {
     
     return (
       <header>
-        <img src={reactImage} alt="React logo" />
+        <a href="../index.htm"> <img src={reactImage} alt="React logo"/></a>
         <h1>Web IaaS</h1>
         {/* De esta forma podríamos hacerlo directamente en una línea
         <h1>{reactTitles[getRandomIntInRange(0, 2)]}</h1> */}

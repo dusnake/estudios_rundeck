@@ -40,21 +40,14 @@ export default function MainMenu() {
                 onClick={() => window.open(rundeck.link, '_blank')}
                 className="rundeck-button"
               >
+                <span className={`flag-icon ${rundeck.name.toLowerCase().includes('santander') ? 'flag-santander' : 
+                                            rundeck.name.toLowerCase().includes('chile') ? 'flag-chile' : 
+                                            'flag-default'}`}>                          
+                </span>
                 {rundeck.name}
               </button>
             ))}
           </div>
-        </div>
-      );
-    } else {
-      // Contenido normal para otros ejemplos
-      tabContent = (
-        <div id="tab-content">
-          <h3>{EXAMPLES[selectedTopic].title}</h3>
-          <p>{EXAMPLES[selectedTopic].description}</p>
-          <pre>
-            <code>{EXAMPLES[selectedTopic].code}</code>
-          </pre>
         </div>
       );
     }
