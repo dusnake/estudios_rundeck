@@ -1,47 +1,89 @@
 import TabButton from "../TabButton/TabButton.jsx";
 import Section from "../Section/Section.jsx";
 import TabsMenu from "../TabsMenu/TabsMenu.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EXAMPLES } from "../../data.js";
 import "./MainMenu.css";
 
 export default function MainMenu() {
   const [selectedTopic, setSelectedTopic] = useState(null);
-  
+  const [listRundeck, setListRundeck] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5001/api/rundeck")
+      .then((response) => response.json())
+      .then((data) => {
+        setListRundeck(data);
+        console.log("Datos de Rundeck obtenidos:", data);
+      })
+      .catch((error) => {
+        console.error("Error al obtener datos de Rundeck:", error);
+      });
+  }, []);
+
   function handleClickMenu(selectedButton) {
     setSelectedTopic(selectedButton);
   }
 
-  let tabContent = (
-    // <p>
-    //   Aquí se va a mostrar información sobre una característica de React, para
-    //   ello elige una opción del menú
-    // </p>
-    <></>
-  );
+  let tabContent = <></>;
 
   if (selectedTopic) {
-    tabContent = (
-      <div id="tab-content">
-        <h3>{EXAMPLES[selectedTopic].title}</h3>
-        <p>{EXAMPLES[selectedTopic].description}</p>
-        <pre>
-          <code>{EXAMPLES[selectedTopic].code}</code>
-        </pre>
-      </div>
-    );
+    if (selectedTopic === 'rundeck') {
+      // Contenido especial para Rundeck
+      tabContent = (
+        <div id="tab-content">
+          {/* <h3>Rundecks Disponibles</h3> */}
+          <div className="rundeck-list">
+            {listRundeck.map((rundeck, index) => (
+              <button 
+                key={index} 
+                onClick={() => window.open(rundeck.link, '_blank')}
+                className="rundeck-button"
+              >
+                {rundeck.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    } else {
+      // Contenido normal para otros ejemplos
+      tabContent = (
+        <div id="tab-content">
+          <h3>{EXAMPLES[selectedTopic].title}</h3>
+          <p>{EXAMPLES[selectedTopic].description}</p>
+          <pre>
+            <code>{EXAMPLES[selectedTopic].code}</code>
+          </pre>
+        </div>
+      );
+    }
   }
 
-  const buttons = Object.values(EXAMPLES).map((button, index) => 
-    <TabButton key={index} onClick={() => handleClickMenu(button.key)}>{button.title}</TabButton>
+  // Botones del menú (incluyendo Rundeck como una opción)
+  const exampleButtons = (
+    <>
+      {/* {Object.values(EXAMPLES).map((button, index) => (
+        <TabButton 
+          key={`example-${index}`} 
+          onClick={() => handleClickMenu(button.key)}
+        >
+          {button.title}
+        </TabButton>
+      ))} */}
+      <TabButton 
+        onClick={() => handleClickMenu('rundeck')}
+      >
+        Rundeck
+      </TabButton>
+    </>
   );
 
   return (
-    <Section title="Ejemplos React" id="reactExamples" className="miClase">
-      <TabsMenu ButtonsContainer="menu" buttons={<>{buttons}</>}>
+    <Section title="" id="reactExamples" className="miClase">
+      <TabsMenu ButtonsContainer="menu" buttons={exampleButtons}>
         {tabContent}
       </TabsMenu>
-      <TabsMenu></TabsMenu>
     </Section>
   );
 }
