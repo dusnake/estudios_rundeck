@@ -50,46 +50,225 @@
 }
 
 .rundeck-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
   margin-top: 20px;
 }
 
 .rundeck-button {
-  padding: 8px 16px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  /* align-self: center; */
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-
-.flag-icon {
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  padding: 16px;
+  background-color: #1c1f25;
+  color: white;
+  text-decoration: none;
+  border: 1px solid #3c434d;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .rundeck-button:hover {
-  background-color: #0056b3;
+  background-color: #23272f;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.flag-santander {
-  background-image: var(--flag-santander);
+.flag-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background-color: #3c434d;
 }
+
+.flag-santander {
+  background: linear-gradient(to bottom,
+    #AA151B 25%,  /* Rojo */
+    #F1BF00 25%,  /* Amarillo */
+    #F1BF00 75%,  /* Amarillo */
+    #AA151B 75%   /* Rojo */
+  );
+  position: relative;
+}
+
+
+
+
 .flag-chile {
-  background-image: var(--flag-chile);
+  position: relative;
+  background: linear-gradient(
+    to bottom,
+    #ffffff 50%,
+    #d52b1e 50%
+  );
+}
+
+/* Cantón azul con estrella blanca para la bandera de Chile */
+.flag-chile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 33.3%;
+  height: 50%;
+  background-color: #0039a6;
+}
+
+/* Estrella blanca para la bandera de Chile */
+.flag-chile::after {
+  content: '★';
+  color: white;
+  font-size: 8px;
+  position: absolute;
+  top: 25%;
+  left: 16.65%;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.flag-default {
+  background-color: #007bff;
+}
+
+/* Añadir estos estilos al final del archivo */
+
+.back-button-container {
+  margin-bottom: 16px;
+}
+
+.back-button {
+  padding: 8px 16px;
+  background-color: #2c3038;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #3c434d;
+}
+
+/* Estilos para el contenedor de tab-content */
+#tab-content {
+  padding: 1rem;
+  border-radius: 6px;
+  background-color: #141619;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#tab-content h3 {
+  margin: 0 0 20px 0;
+  text-align: center;
+  color: #03d5ff;
+}
+
+/* Añadir estos estilos al archivo existente */
+
+/* Estilos comunes para todas las listas de instancias */
+.instance-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.instance-button {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: #1c1f25;
+  color: white;
+  text-decoration: none;
+  border: 1px solid #3c434d;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.instance-button:hover {
+  background-color: #23272f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos específicos para Dynatrace */
+.dynatrace-button {
+  background-color: #1C2025;
+  border-left: 4px solid #1496FF;
+}
+
+.dynatrace-button:hover {
+  background-color: #232830;
+}
+
+.tenant-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background-color: #1496FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.tenant-icon::before {
+  content: 'DT';
+  font-size: 10px;
+}
+
+.tenant-santander {
+  background-color: #EC0000;
+}
+
+.tenant-chile {
+  background-color: #D52B1E;
+}
+
+.tenant-default {
+  background-color: #1496FF;
+}
+
+.environment-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  background-color: #23272f;
+  font-size: 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Estilos para estados de carga y errores */
+.loading-indicator {
+  padding: 16px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+.error-message {
+  padding: 16px;
+  text-align: center;
+  color: #ff5c5c;
+  background-color: rgba(255, 92, 92, 0.1);
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+.empty-message {
+  padding: 16px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin-top: 16px;
 }

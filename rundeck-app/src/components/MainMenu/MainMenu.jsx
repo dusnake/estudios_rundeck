@@ -1,23 +1,63 @@
 import TabButton from "../TabButton/TabButton.jsx";
 import Section from "../Section/Section.jsx";
 import TabsMenu from "../TabsMenu/TabsMenu.jsx";
+import RundeckJobExecutor from "../RundeckJobExecutor/RundeckJobExecutor.jsx";
 import { useState, useEffect } from "react";
-import { EXAMPLES } from "../../data.js";
+import axios from "axios";
 import "./MainMenu.css";
+
+const API_BASE_URL = "http://localhost:5001/api";
 
 export default function MainMenu() {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [listRundeck, setListRundeck] = useState([]);
+  const [listDynatrace, setListDynatrace] = useState([]);
+  const [loading, setLoading] = useState({
+    rundeck: false,
+    dynatrace: false
+  });
+  const [error, setError] = useState({
+    rundeck: null,
+    dynatrace: null
+  });
 
+  // Recuperar datos de Rundeck
   useEffect(() => {
-    fetch("http://localhost:5001/api/rundeck")
-      .then((response) => response.json())
-      .then((data) => {
-        setListRundeck(data);
-        console.log("Datos de Rundeck obtenidos:", data);
+    setLoading(prev => ({ ...prev, rundeck: true }));
+    
+    axios.get(`${API_BASE_URL}/rundeck`)
+      .then((response) => {
+        setListRundeck(response.data);
+        setLoading(prev => ({ ...prev, rundeck: false }));
+        console.log("Datos de Rundeck obtenidos:", response.data);
       })
       .catch((error) => {
         console.error("Error al obtener datos de Rundeck:", error);
+        setError(prev => ({ 
+          ...prev, 
+          rundeck: "Error al cargar instancias de Rundeck" 
+        }));
+        setLoading(prev => ({ ...prev, rundeck: false }));
+      });
+  }, []);
+
+  // Recuperar datos de Dynatrace
+  useEffect(() => {
+    setLoading(prev => ({ ...prev, dynatrace: true }));
+    
+    axios.get(`${API_BASE_URL}/dynatrace`)
+      .then((response) => {
+        setListDynatrace(response.data);
+        setLoading(prev => ({ ...prev, dynatrace: false }));
+        console.log("Datos de Dynatrace obtenidos:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error al obtener datos de Dynatrace:", error);
+        setError(prev => ({ 
+          ...prev, 
+          dynatrace: "Error al cargar instancias de Dynatrace" 
+        }));
+        setLoading(prev => ({ ...prev, dynatrace: false }));
       });
   }, []);
 
@@ -29,23 +69,86 @@ export default function MainMenu() {
 
   if (selectedTopic) {
     if (selectedTopic === 'rundeck') {
-      // Contenido especial para Rundeck
+      // Contenido de la lista de Rundecks
       tabContent = (
         <div id="tab-content">
-          {/* <h3>Rundecks Disponibles</h3> */}
-          <div className="rundeck-list">
+          <h3>Rundecks Disponibles</h3>
+          
+          {loading.rundeck && (
+            <div className="loading-indicator">Cargando instancias de Rundeck...</div>
+          )}
+          
+          {error.rundeck && (
+            <div className="error-message">{error.rundeck}</div>
+          )}
+          
+          {!loading.rundeck && !error.rundeck && listRundeck.length === 0 && (
+            <div className="empty-message">No hay instancias de Rundeck disponibles</div>
+          )}
+          
+          <div className="instance-list rundeck-list">
             {listRundeck.map((rundeck, index) => (
-              <button 
+              <a 
                 key={index} 
-                onClick={() => window.open(rundeck.link, '_blank')}
-                className="rundeck-button"
+                href={rundeck.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="instance-button rundeck-button"
               >
                 <span className={`flag-icon ${rundeck.name.toLowerCase().includes('santander') ? 'flag-santander' : 
                                             rundeck.name.toLowerCase().includes('chile') ? 'flag-chile' : 
                                             'flag-default'}`}>                          
                 </span>
                 {rundeck.name}
-              </button>
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+    } else if (selectedTopic === 'jobs') {
+      // Contenido para ejecutar Jobs con el selector de proyectos predefinido
+      tabContent = (
+        <div id="tab-content">
+          <h3>Ejecutar Jobs de Rundeck</h3>
+          <RundeckJobExecutor />
+        </div>
+      );
+    } else if (selectedTopic === 'dynatrace') {
+      // Contenido para Dynatrace 
+      tabContent = (
+        <div id="tab-content">
+          <h3>Dynatrace Disponibles</h3>
+          
+          {loading.dynatrace && (
+            <div className="loading-indicator">Cargando instancias de Dynatrace...</div>
+          )}
+          
+          {error.dynatrace && (
+            <div className="error-message">{error.dynatrace}</div>
+          )}
+          
+          {!loading.dynatrace && !error.dynatrace && listDynatrace.length === 0 && (
+            <div className="empty-message">No hay instancias de Dynatrace disponibles</div>
+          )}
+          
+          <div className="instance-list dynatrace-list">
+            {listDynatrace.map((dynatrace, index) => (
+              <a 
+                key={index} 
+                href={dynatrace.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="instance-button dynatrace-button"
+              >
+                <span className={`tenant-icon ${dynatrace.name.toLowerCase().includes('santander') ? 'tenant-santander' : 
+                                            dynatrace.name.toLowerCase().includes('chile') ? 'tenant-chile' : 
+                                            'tenant-default'}`}>                          
+                </span>
+                {dynatrace.name}
+                {dynatrace.environment && (
+                  <span className="environment-tag">{dynatrace.environment}</span>
+                )}
+              </a>
             ))}
           </div>
         </div>
@@ -53,21 +156,23 @@ export default function MainMenu() {
     }
   }
 
-  // Botones del menú (incluyendo Rundeck como una opción)
+  // Botones del menú
   const exampleButtons = (
     <>
-      {/* {Object.values(EXAMPLES).map((button, index) => (
-        <TabButton 
-          key={`example-${index}`} 
-          onClick={() => handleClickMenu(button.key)}
-        >
-          {button.title}
-        </TabButton>
-      ))} */}
       <TabButton 
         onClick={() => handleClickMenu('rundeck')}
-      >
+        className={selectedTopic === 'rundeck' ? 'active' : ''}>
         Rundeck
+      </TabButton>
+      <TabButton 
+        onClick={() => handleClickMenu('jobs')}
+        className={selectedTopic === 'jobs' ? 'active' : ''}>
+        Ejecutar Jobs
+      </TabButton>
+      <TabButton 
+        onClick={() => handleClickMenu('dynatrace')}
+        className={selectedTopic === 'dynatrace' ? 'active' : ''}>
+        Dynatrace
       </TabButton>
     </>
   );

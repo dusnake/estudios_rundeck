@@ -1,14 +1,7 @@
 import reactImage from '../../assets/logoblancosan.png';
 import './Header.css';
 
-const reactTitles = ['React Fundamentos', 'React Bases', 'React Principios'];
-
-function getRandomIntInRange(min, max){
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
 export default function Header() {
-    const titleWinner = reactTitles[getRandomIntInRange(0, 2)];
     
     return (
       <header>

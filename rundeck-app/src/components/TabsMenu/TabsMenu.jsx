@@ -17,9 +17,3 @@ export default function TabsMenu({
         </>
     );
 }
-
-// TabsMenu.defaultProps = {
-//     buttons: <li><button>Boton de ejemplo</button></li>, 
-//     children: <p>Texto de ejemplo</p>, 
-//     ButtonsContainer: "menu"
-// };
