@@ -39,7 +39,8 @@ export const runJobController = async (req, res) => {
         status: 'running',
         options: options || {},
         projectName: executionData.project,
-        description: executionData.description || `Ejecución del job ${jobId}`
+        description: executionData.job.name || `Ejecución del job ${jobId}`,
+        permalink: executionData.permalink,
       });
   
       await newExecution.save();

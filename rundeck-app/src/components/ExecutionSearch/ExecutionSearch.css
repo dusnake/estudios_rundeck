@@ -1,0 +1,87 @@
+.execution-search-component {
+    margin: 0;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .search-container {
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    background-color: #464446;
+}
+  
+/* Cambia el color del label del campo de búsqueda a azul */
+.execution-search-component .MuiInputLabel-root {
+    color: #e4e7ea !important;
+  }
+
+  .search-results-count {
+    margin-left: 16px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  
+/* Cambiar el fondo de la tabla a rojo */
+.table-container {
+    max-height: 400px;
+    margin-top: 8px;
+    background-color: #ffebee;
+  }
+  
+  /* Cambiar el color de las cabeceras de la tabla */
+  .table-container th {
+    background-color: #f44336;
+    color: rgb(255, 255, 255);
+  }
+  
+  .table-container td {
+    background-color: #1c1f25;
+    color: rgb(255, 255, 255);
+    font-family: "Quicksand", sans-serif;
+  }
+
+  /* Cambiar el color de las filas al pasar el mouse */
+  .execution-row:hover {
+    background-color: #ffcdd2; /* Rojo más claro para hover */
+  }
+  
+  /* Cambiar el color del borde de las celdas */
+  .table-container td, .table-container th {
+    border-bottom: 1px solid #ef9a9a; /* Borde rojo más claro */
+  }
+  
+  /* Cambiar el color de las filas en ejecución */
+  .execution-row.running-execution {
+    background-color: #ffcdd2; /* Rojo claro para ejecuciones en curso */
+  }
+  
+ 
+  .execution-row.running-execution {
+    background-color: rgba(33, 150, 243, 0.1);
+  }
+  
+  .execution-row:hover {
+    background-color: #2c3038;
+  }
+  
+  .tooltip-container {
+    position: relative;
+  }
+  
+  .no-results {
+    padding: 24px !important;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+
+   /* a:link {
+    text-decoration: none;
+    color: #007bff;
+    text-decoration: underline;
+  }
+
+    a:visited {
+    text-decoration: none;
+    color: #007bff;
+  } */

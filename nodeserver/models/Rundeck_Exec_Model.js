@@ -37,6 +37,9 @@ const rundeckExecutionSchema = new mongoose.Schema({
   result: {
     type: Object
   },
+  permalink: {
+    type: String
+  },
   logOutput: {
     type: String
   }
