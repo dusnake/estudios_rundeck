@@ -1,0 +1,8 @@
+Windows
+https://packagecloud.io/pagerduty/rundeck/packages/java/org.rundeck/rundeck-5.10.0-20250312.war/artifacts/rundeck-5.10.0-20250312.war/download?distro_version_id=167
+
+Ubuntu
+https://packagecloud.io/pagerduty/rundeck/packages/any/any/rundeck_5.10.0.20250312-1_all.deb/download.deb?distro_version_id=35
+
+Docker
+docker pull rundeck/rundeck:5.10.0
