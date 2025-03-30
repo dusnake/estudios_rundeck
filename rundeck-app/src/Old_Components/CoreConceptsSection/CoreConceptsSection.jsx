@@ -1,4 +1,4 @@
-import CoreConcepts from "../../components/CoreConcepts/CoreConcepts.jsx";
+import CoreConcepts from "../CoreConcepts/CoreConcepts.jsx";
 import { CORE_CONCEPTS } from "../../data.js";
 
 export default function CoreConceptsSection(){

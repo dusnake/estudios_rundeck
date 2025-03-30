@@ -8,7 +8,7 @@ const API_BASE_URL = 'http://localhost:5001/api';
 const PREDEFINED_PROJECTS = [
   'TRANSACTIONAL_SYSTEMS_WINDOWS',
   'TRANSACTIONAL_SYSTEMS_LINUX',
-  'GENERAL'
+  'TEST_EDU'
 ];
 
 export default function RundeckJobExecutor({ initialProject = null }) {

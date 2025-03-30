@@ -1,5 +1,5 @@
 import Header from "./components/Header/Header.jsx";
-import CoreConceptsSection from "./components/CoreConceptsSection/CoreConceptsSection.jsx";
+// import CoreConceptsSection from "./components/CoreConceptsSection/CoreConceptsSection.jsx";
 import MainMenu from "./components/MainMenu/MainMenu.jsx";
 
 function App() {
