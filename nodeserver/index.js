@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import routerRundeck from "./routes/Rundeck_Route.js";
 import routerDynatrace from "./routes/Dynatrace_Route.js";
 import routerRundeckApi from "./routes/RundeckApi_Route.js";
+import routerAuth from "./routes/Auth_Route.js"; 
 import { startUpdateService } from "./services/RundeckCronApi_Service.js";
 
 
@@ -48,6 +49,7 @@ app.get("/", (req, res) => {
 app.use("/api", routerRundeck);
 app.use("/api", routerDynatrace);
 app.use("/api", routerRundeckApi);
+app.use("/api", routerAuth); // Authldap
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
