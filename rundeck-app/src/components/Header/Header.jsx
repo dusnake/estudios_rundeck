@@ -1,11 +1,17 @@
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import reactImage from '../../assets/logoblancosan.png';
-// import './Header.css';
+import './Header.css';
 
 export default function Header() {
-    
-    return (
-      <header className='width: 90% max-w-50 m-auto'>
-        <a href="../index.htm"> <img src={reactImage} alt="React logo" class="align-items: center;"/></a>
+  const { user, logout } = useAuth();
+  
+  return (
+    <header className="header">
+      <div className="logo-container">
+        <Link to="/">
+          <img src={reactImage} alt="Logo" className="logo" />
+        </Link>
         <h1 className="
           m-0 
           font-['Roboto_Condensed']
@@ -15,15 +21,21 @@ export default function Header() {
           bg-clip-text 
           text-transparent 
           drop-shadow-lg"
-          >
-            Web IaaS
-          </h1>
-        {/* De esta forma podríamos hacerlo directamente en una línea
-        <h1>{reactTitles[getRandomIntInRange(0, 2)]}</h1> */}
-        <p>
-          {/* ¡Conceptos fundamentales de React que necesitas conocer para desarrollar
-          cualquier app con esta famosa librería! */}
-        </p>
-      </header>
-    );
-  }
+        >
+          Web IaaS
+        </h1>
+      </div>
+      
+      {user && (
+        <div className="user-menu">
+          <span className="username">
+            {user.fullName || user.username}
+          </span>
+          <button className="logout-button" onClick={logout}>
+            Cerrar Sesión
+          </button>
+        </div>
+      )}
+    </header>
+  );
+}
