@@ -1,4 +1,3 @@
 /.DS_Store
-/aa_picandocodigo
-/rundeck-app/.env
-/nodeserver/.env
+nodeserver/.env
+rundeck-app/.env
