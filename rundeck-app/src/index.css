@@ -2,7 +2,7 @@
 @import "tailwindcss";
 @theme {
   --font-roboto: "Roboto", sans-serif; 
-  ; 
+  --color-regal-blue: #243c5a; 
 }
 
 * {
