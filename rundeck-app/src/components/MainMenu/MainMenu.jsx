@@ -3,6 +3,7 @@ import Section from "../Section/Section.jsx";
 import TabsMenu from "../TabsMenu/TabsMenu.jsx";
 import RundeckJobExecutor from "../RundeckJobExecutor/RundeckJobExecutor.jsx";
 import DragonBallList from "../DragonBallList/DragonBallList.jsx";
+import RundeckForm from "../RundeckForm/RundeckForm.jsx";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./MainMenu.css";
@@ -162,6 +163,13 @@ export default function MainMenu() {
           <DragonBallList />
         </div>
       );
+    } else if (selectedTopic === 'formulario') {
+      // Nuevo contenido para el formulario
+      tabContent = (
+        <div id="tab-content">
+          <RundeckForm />
+        </div>
+      );
     }
   }
 
@@ -187,6 +195,11 @@ export default function MainMenu() {
         onClick={() => handleClickMenu('pruebasAPI')}
         className={selectedTopic === 'pruebasAPI' ? 'active' : ''}>
         Pruebas API
+      </TabButton>
+      <TabButton 
+        onClick={() => handleClickMenu('formulario')}
+        className={selectedTopic === 'formulario' ? 'active' : ''}>
+        Cambios Auto
       </TabButton>
     </>
   );
