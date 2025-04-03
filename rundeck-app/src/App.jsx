@@ -51,7 +51,7 @@ function App() {
   return (
     <>
       <Header />
-      <main className="width:90% max-width: 50rem">
+      <main>
         <Routes>
           {/* Ruta principal ahora muestra MainMenu directamente sin autenticación */}
           <Route path="/" element={<MainMenu />} />

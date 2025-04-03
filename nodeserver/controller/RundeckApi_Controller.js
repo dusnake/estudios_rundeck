@@ -22,12 +22,28 @@ export const runJobController = async (req, res) => {
         return res.status(400).json({ error: 'Se requiere un jobId' });
       }
   
+      // Debug: Mostrar los datos recibidos
+      console.log('Ejecutando job con los siguientes datos:');
+      console.log('jobId:', jobId);
+      console.log('options:', options);
+      console.log('headers:', headers);
+      
       // Ejecutar el job en Rundeck
       const response = await axios.post(
         `${RUNDECK_API_URL}/job/${jobId}/run`, 
-        options || {}, 
+        { options: options || {} },
         { headers }
       );
+      // Mostrar debug de los datos enviados
+      console.log('Datos enviados a Rundeck:', {
+        jobId,
+        options: options || {},
+        headers
+      });
+
+
+      // Debug: Mostrar respuesta recibida
+      console.log('Respuesta de Rundeck:', response.status);
   
       // Extraer información relevante de la respuesta
       const executionData = response.data;
