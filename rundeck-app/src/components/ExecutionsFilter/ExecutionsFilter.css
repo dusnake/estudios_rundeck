@@ -1,0 +1,90 @@
+.executions-filter {
+    background-color: #23272f;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .filter-header h4 {
+    margin: 0;
+    color: #03d5ff;
+    font-size: 16px;
+  }
+  
+  .clear-filters-btn {
+    background-color: transparent;
+    border: 1px solid #6c757d;
+    color: #e4e7ea;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .clear-filters-btn:hover {
+    background-color: #2a2e35;
+    border-color: #e4e7ea;
+  }
+  
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .filter-item label {
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: #a8adb5;
+  }
+  
+  .filter-input,
+  .filter-select {
+    background-color: #2a2e35;
+    border: 1px solid #3a3f48;
+    color: #e4e7ea;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .filter-input:focus,
+  .filter-select:focus {
+    outline: none;
+    border-color: #03d5ff;
+    box-shadow: 0 0 0 2px rgba(3, 213, 255, 0.2);
+  }
+  
+  .filter-input::placeholder {
+    color: #6c757d;
+  }
+  
+  /* Ajustes para los input de fecha */
+  input[type="date"] {
+    color-scheme: dark;
+  }
+  
+  /* Estilo para cuando hay filtros activos */
+  .has-active-filters {
+    border-left: 3px solid #03d5ff;
+  }
+  
+  @media (max-width: 768px) {
+    .filter-grid {
+      grid-template-columns: 1fr;
+    }
+  }
