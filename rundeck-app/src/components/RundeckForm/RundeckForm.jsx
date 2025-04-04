@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Importamos useEffect
 import axios from 'axios';
 import './RundeckForm.css';
+import { exportExecutionsToExcel } from '../../utils/ExcelExporter';
+import ExcelExportButton from '../ExcelExportButton/ExcelExportButton';
+
 
 export default function RundeckForm() {
   // Estado inicial del formulario
   const [formData, setFormData] = useState({
     changeType: '',
     machines: '',
-    complianceOptions: [], // Para selección múltiple
-    patchingVersion: '' // Para selección única
+    complianceOptions: [],
+    patchingVersion: ''
   });
   
   // Estado para manejar la respuesta y estado de envío
@@ -19,24 +22,50 @@ export default function RundeckForm() {
     response: null
   });
 
+  // Nuevo estado para las ejecuciones
+  const [executions, setExecutions] = useState([]);
+  const [loadingExecutions, setLoadingExecutions] = useState(false);
+
   // Opciones para el combo de tipo de cambio
   const changeTypeOptions = [
     { value: '', label: 'Seleccione un tipo de cambio' },
-    { value: 'compliance', label: 'Compliance' },
-    { value: 'patching', label: 'Patching' }
+    ...(import.meta.env.VITE_CHG_CATEGORIES ? JSON.parse(import.meta.env.VITE_CHG_CATEGORIES) : [])
   ];
   
   // Opciones para el combo de compliance
-  const complianceOptions = [
-    { value: '1-1-1', label: '1-1-1' },
-    { value: '2-2-2', label: '2-2-2' }
-  ];
+  const complianceOptions = import.meta.env.VITE_COMPLIANCE_OPTIONS ? 
+    import.meta.env.VITE_COMPLIANCE_OPTIONS.split(',').map(value => ({ value: value.trim(), label: value.trim() })) : 
+    [];
   
   // Opciones para el combo de patching
-  const patchingOptions = [
-    { value: '90523', label: '90523' },
-    { value: '85527', label: '85527' }
-  ];
+  const patchingOptions = import.meta.env.VITE_PATCHING_OPTIONS ? 
+    import.meta.env.VITE_PATCHING_OPTIONS.split(',').map(value => ({ value: value.trim(), label: value.trim() })) : 
+    [];
+
+  // Cargar ejecuciones al montar el componente
+  useEffect(() => {
+    fetchExecutions();
+  }, []);
+
+  // Función para cargar las ejecuciones desde MongoDB
+  const fetchExecutions = async () => {
+    try {
+      setLoadingExecutions(true);
+      const response = await axios.get('http://localhost:5001/api/rundeck/form-executions');
+      setExecutions(response.data.executions || []);
+    } catch (error) {
+      console.error('Error al cargar las ejecuciones:', error);
+    } finally {
+      setLoadingExecutions(false);
+    }
+  };
+
+  // Formatear fecha para mostrarla en la tabla
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
 
   // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
@@ -144,13 +173,19 @@ export default function RundeckForm() {
       const dataToSend = {
         changeType: formData.changeType,
         machines: formData.machines,
+        options: {
+          changeType: formData.changeType,
+          machines: formData.machines
+        }
       };
       
       // Añadir datos específicos según el tipo de cambio
       if (formData.changeType === 'compliance') {
         dataToSend.specificOptions = formData.complianceOptions;
+        dataToSend.options.specificOptions = formData.complianceOptions;
       } else if (formData.changeType === 'patching') {
         dataToSend.specificOptions = formData.patchingVersion;
+        dataToSend.options.specificOptions = formData.patchingVersion;
       }
       
       // Enviar datos a la API
@@ -164,6 +199,9 @@ export default function RundeckForm() {
         success: true,
         response: response.data
       });
+      
+      // Actualizar la lista de ejecuciones
+      setTimeout(() => fetchExecutions(), 1000);
       
       // Limpiar formulario después de envío exitoso
       setFormData({
@@ -194,6 +232,22 @@ export default function RundeckForm() {
         success: false,
         response: null
       });
+    }
+  };
+
+  // Función para exportar a Excel simplificada
+  const handleExportToExcel = async () => {
+    if (executions.length === 0) {
+      alert("No hay datos para exportar");
+      return;
+    }
+    
+    try {
+      await exportExecutionsToExcel(executions, formatDate);
+      console.log("Archivo Excel generado correctamente");
+    } catch (error) {
+      console.error("Error al generar archivo Excel:", error);
+      alert("Ocurrió un error al exportar los datos: " + error.message);
     }
   };
 
@@ -261,6 +315,8 @@ export default function RundeckForm() {
             )}
           </div>
         )}
+        
+
         
         {/* Selector único para Patching */}
         {formData.changeType === 'patching' && (
@@ -334,6 +390,114 @@ export default function RundeckForm() {
           )}
         </div>
       )}
+      
+      {/* Nueva tabla de ejecuciones */}
+      <div className="form-executions-container">
+        <h3>Historial de ejecuciones</h3>
+        
+        {/* Botón para exportar a Excel */}
+        <ExcelExportButton 
+            onClick={handleExportToExcel}
+            isDisabled={loadingExecutions || executions.length === 0}
+          />
+
+        {loadingExecutions ? (
+          <div className="loading-indicator">Cargando ejecuciones...</div>
+        ) : executions.length > 0 ? (
+          <div className="executions-table-container">
+            <table className="executions-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tipo</th>
+                  <th>Detalles</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {executions.map(execution => (
+                  <tr key={execution._id || execution.executionId} className={`execution-row ${execution.status === 'running' ? 'running-execution' : ''}`}>
+                    <td>
+                      {execution.permalink ? (
+                        <a href={execution.permalink} target="_blank" rel="noopener noreferrer">
+                          {execution.executionId}
+                        </a>
+                      ) : execution.executionId}
+                    </td>
+                    <td>
+                      {/* Mostrar el tipo de cambio */}
+                      {execution.options?.changeType || 
+                      execution.changeType || 
+                      'N/A'}
+                    </td>
+                    <td>
+                      <details>
+                        <summary>Ver detalles</summary>
+                        <div className="execution-details">
+                          {/* Mostrar las opciones específicas */}
+                          <div>
+                            <strong>Tipo:</strong> {
+                              (execution.options?.changeType || execution.changeType) === 'compliance' ? 'Compliance' : 
+                              (execution.options?.changeType || execution.changeType) === 'patching' ? 'Patching' : 
+                              'Desconocido'
+                            }
+                          </div>
+                          
+                          {/* Mostrar las opciones específicas según el tipo */}
+                          {(execution.options?.specificOptions || execution.specificOptions) && (
+                            <div>
+                              <strong>
+                                {(execution.options?.changeType || execution.changeType) === 'compliance' ? 'Reglas: ' : 'Versión: '}
+                              </strong>
+                              {Array.isArray(execution.options?.specificOptions || execution.specificOptions) 
+                                ? (execution.options?.specificOptions || execution.specificOptions).join(', ')
+                                : (execution.options?.specificOptions || execution.specificOptions)}
+                            </div>
+                          )}
+                          
+                          {/* Mostrar información sobre las máquinas */}
+                          {(execution.options?.machines || execution.machines) && (
+                            <div>
+                              <strong>Máquinas:</strong> {
+                                typeof (execution.options?.machines || execution.machines) === 'string'
+                                  ? (execution.options?.machines || execution.machines).split(/[\n,]+/).length + ' máquina(s)'
+                                  : Array.isArray(execution.options?.machines || execution.machines)
+                                    ? (execution.options?.machines || execution.machines).length + ' máquina(s)'
+                                    : 'N/A'
+                              }
+                              <details>
+                                <summary>Ver máquinas</summary>
+                                <pre className="machines-list">
+                                  {typeof (execution.options?.machines || execution.machines) === 'string'
+                                    ? (execution.options?.machines || execution.machines)
+                                    : Array.isArray(execution.options?.machines || execution.machines)
+                                      ? (execution.options?.machines || execution.machines).join('\n')
+                                      : 'No hay máquinas especificadas'
+                                  }
+                                </pre>
+                              </details>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    </td>
+                    <td className={`execution-status ${execution.status === 'succeeded' ? 'status-success' : 
+                                     execution.status === 'failed' ? 'status-failed' : 
+                                     execution.status === 'running' ? 'status-running' : 
+                                     execution.status === 'aborted' ? 'status-aborted' : 'status-unknown'}`}>
+                      {execution.status || 'Desconocido'}
+                    </td>
+                    <td>{formatDate(execution.createdAt || execution.startedAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="no-executions-message">No hay ejecuciones registradas</div>
+        )}
+      </div>
     </div>
   );
 }

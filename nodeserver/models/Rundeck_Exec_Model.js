@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 
 const rundeckExecutionSchema = new mongoose.Schema({
-  jobId: {
-    type: String,
-    required: true
-  },
   executionId: {
     type: String,
     required: true,
@@ -13,37 +9,41 @@ const rundeckExecutionSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['running', 'succeeded', 'failed', 'aborted', 'unknown'],
-    default: 'running'
+    default: 'unknown'
+  },
+  permalink: String,
+  project: String,
+  changeType: String, // Tipo de cambio (nivel superior)
+  specificOptions: mongoose.Schema.Types.Mixed, // Para guardar opciones específicas (nivel superior)
+  machines: mongoose.Schema.Types.Mixed, // Para guardar máquinas (nivel superior)
+  options: {
+    // Estructura completa de opciones
+    changeType: String,
+    specificOptions: mongoose.Schema.Types.Mixed,
+    machines: mongoose.Schema.Types.Mixed,
+    machinesList: [String], // Lista procesada de máquinas
+    argString: String
   },
   startedAt: {
     type: Date,
     default: Date.now
   },
-  endedAt: {
-    type: Date
+  endedAt: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now
   },
-  options: {
-    type: Object
-  },
-  user: {
-    type: String
-  },
-  projectName: {
-    type: String
-  },
-  description: {
-    type: String
-  },
-  result: {
-    type: Object
-  },
-  permalink: {
-    type: String
-  },
-  logOutput: {
-    type: String
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, { timestamps: true });
+});
+
+// Actualizar el timestamp cuando se modifica
+rundeckExecutionSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
 
 const RundeckExecution = mongoose.model('RundeckExecution', rundeckExecutionSchema);
 

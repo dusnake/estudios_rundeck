@@ -1,6 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { logger } from '../utils/logger.js';
+import RundeckExecution from '../models/Rundeck_Exec_Model.js';
 
 dotenv.config();
 
@@ -13,83 +14,72 @@ const RUNDECK_JOB_IDS = {
   default: process.env.RUNDECK_DEFAULT_JOB_ID || 'default-job-id'
 };
 
-/**
- * Controlador para manejar el envío del formulario a Rundeck
- */
 export const submitRundeckForm = async (req, res) => {
   try {
     logger.info('Recibida solicitud de envío de formulario para Rundeck');
     
     const { changeType, machines, specificOptions } = req.body;
     
-    // Validar campos requeridos generales
+    // Validación básica
     if (!changeType) {
-      logger.warn('Intento de envío de formulario sin tipo de cambio');
       return res.status(400).json({
         success: false,
         message: 'El tipo de cambio es obligatorio'
       });
     }
     
+    // Validar que el tipo de cambio esté soportado
+    if (!RUNDECK_JOB_IDS[changeType]) {
+      return res.status(400).json({
+        success: false,
+        message: `Tipo de cambio no soportado: ${changeType}`
+      });
+    }
+    
+    // Validar que se proporcionen máquinas
     if (!machines || machines.trim() === '') {
-      logger.warn('Intento de envío de formulario sin especificar máquinas');
       return res.status(400).json({
         success: false,
         message: 'Debe especificar al menos una máquina'
       });
     }
     
-    // Validaciones específicas según el tipo de cambio
-    if (changeType === 'compliance') {
-      if (!specificOptions || (Array.isArray(specificOptions) && specificOptions.length === 0)) {
-        logger.warn('Intento de envío de formulario de compliance sin opciones seleccionadas');
-        return res.status(400).json({
-          success: false,
-          message: 'Debe seleccionar al menos una opción de compliance'
-        });
-      }
-    } else if (changeType === 'patching') {
-      if (!specificOptions) {
-        logger.warn('Intento de envío de formulario de patching sin versión seleccionada');
-        return res.status(400).json({
-          success: false,
-          message: 'Debe seleccionar una versión de patching'
-        });
-      }
+    // Preparar la lista de máquinas
+    let machinesList = [];
+    
+    // Las máquinas pueden venir como texto separado por comas o saltos de línea
+    if (typeof machines === 'string') {
+      // Dividir por comas o saltos de línea y eliminar espacios en blanco
+      machinesList = machines.split(/[\n,]+/).map(machine => machine.trim()).filter(machine => machine !== '');
+    } else if (Array.isArray(machines)) {
+      // Si ya viene como array, simplemente limpiamos cada elemento
+      machinesList = machines.map(machine => machine.trim()).filter(machine => machine !== '');
     }
     
-    // Preparar las máquinas (convertir múltiples líneas en formato de lista)
-    const machinesList = machines
-      .trim()
-      .split(/[\n,]+/)
-      .map(machine => machine.trim())
-      .filter(machine => machine !== '');
-    
+    // Validar que haya máquinas después de procesar
     if (machinesList.length === 0) {
-      logger.warn('La lista de máquinas está vacía después de procesarla');
       return res.status(400).json({
         success: false,
-        message: 'La lista de máquinas no puede estar vacía'
+        message: 'Debe especificar al menos una máquina válida'
       });
     }
+    
+    const jobId = RUNDECK_JOB_IDS[changeType] || RUNDECK_JOB_IDS.default;
     
     logger.info(`Formulario validado correctamente para tipo: ${changeType}`);
     logger.debug('Datos del formulario:', { 
       changeType, 
+      machinesName: machinesList,
       machinesCount: machinesList.length,
-      specificOptions 
+      specificOptions,
+      jobId
     });
-    
-    // Determinar qué job ID usar según el tipo de cambio
-    const jobId = RUNDECK_JOB_IDS[changeType] || RUNDECK_JOB_IDS.default;
     
     // Preparar los argumentos para Rundeck
     const argString = prepareRundeckArguments(changeType, machinesList, specificOptions);
     
     try {
       // Ejecutar el job en Rundeck
-      // NOTA: Esta parte está comentada para desarrollo/pruebas
-      /*
       const rundeckResponse = await axios.post(
         `${RUNDECK_API_URL}/job/${jobId}/executions`, 
         {
@@ -105,38 +95,60 @@ export const submitRundeckForm = async (req, res) => {
       
       const executionId = rundeckResponse.data.id;
       const executionUrl = `${RUNDECK_API_URL}/execution/${executionId}`;
+      const permalinkUrl = rundeckResponse.data.permalink || executionUrl;
       
       logger.info(`Job de Rundeck ejecutado exitosamente. ID: ${executionId}`);
       
+      // Guardar la ejecución en MongoDB
+      try {
+       
+        // Crear un nuevo documento para la ejecución
+        const newExecution = new RundeckExecution({
+          executionId: executionId,
+          status: 'running',
+          permalink: permalinkUrl,
+          project: rundeckResponse.data.project || 'default',
+          // Guardar el tipo de cambio en ambos niveles para compatibilidad
+          changeType: changeType,
+          // Guardar los datos específicos
+          specificOptions: specificOptions,
+          machines: machines, // Guardamos el string original
+          // Estructura de opciones completa
+          options: {
+            changeType: changeType,
+            specificOptions: specificOptions,
+            machines: machines, // Guardamos el string original
+            machinesList: machinesList, // También guardamos la lista procesada
+            argString: argString
+          },
+          startedAt: new Date(),
+          createdAt: new Date()
+        });
+        
+        // Guardar el documento en la base de datos
+        await newExecution.save();
+        logger.info(`Ejecución guardada en la base de datos con ID: ${newExecution._id}`);
+      } catch (dbError) {
+        // Si hay un error al guardar en la base de datos, registrarlo pero no detener la respuesta al usuario
+        logger.error('Error al guardar la ejecución en la base de datos:', dbError);
+      }
+      
+      // Responder al cliente
       return res.status(200).json({
         success: true,
         message: 'Formulario enviado correctamente',
         executionId: executionId,
-        executionUrl: executionUrl
-      });
-      */
-      
-      // Simulación para desarrollo (quitar en producción)
-      logger.info('[SIMULACIÓN] Procesando formulario para Rundeck');
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simular proceso
-      
-      const mockExecutionId = `${changeType}-${Date.now()}`;
-      logger.info(`[SIMULACIÓN] Job ejecutado con ID simulado: ${mockExecutionId}`);
-      
-      res.status(200).json({
-        success: true,
-        message: 'Formulario enviado correctamente',
-        executionId: mockExecutionId,
-        argString: argString // Solo para depuración en desarrollo
+        executionUrl: executionUrl,
+        permalink: permalinkUrl
       });
       
     } catch (rundeckError) {
-      logger.error('Error al comunicarse con Rundeck:', rundeckError);
+      logger.error('Error al ejecutar job en Rundeck:', rundeckError);
       
-      res.status(502).json({
+      return res.status(500).json({
         success: false,
-        message: 'Error al comunicarse con Rundeck',
-        details: rundeckError.message
+        message: 'Error al ejecutar el job en Rundeck',
+        details: rundeckError.message || 'Error de comunicación con Rundeck'
       });
     }
     
@@ -192,17 +204,6 @@ export const getRundeckExecutionStatus = async (req, res) => {
       });
     }
     
-    // Simulación para desarrollo
-    return res.status(200).json({
-      success: true,
-      status: 'running',
-      progress: 65,
-      started: new Date(Date.now() - 120000).toISOString(),
-      executionId: executionId
-    });
-    
-    /*
-    // Implementación real
     const response = await axios.get(
       `${RUNDECK_API_URL}/execution/${executionId}/state`,
       {
@@ -217,7 +218,8 @@ export const getRundeckExecutionStatus = async (req, res) => {
       success: true,
       ...response.data
     });
-    */
+
+
   } catch (error) {
     logger.error('Error al obtener estado de ejecución:', error);
     
@@ -229,38 +231,156 @@ export const getRundeckExecutionStatus = async (req, res) => {
   }
 };
 
-/**
- * Controlador para obtener la lista de opciones disponibles
- */
-export const getRundeckFormOptions = async (req, res) => {
+
+export const getFormExecutions = async (req, res) => {
   try {
-    // Opciones de formulario (en una aplicación real podrían venir de una base de datos)
-    const formOptions = {
-      changeTypes: [
-        { value: 'compliance', label: 'Compliance' },
-        { value: 'patching', label: 'Patching' }
-      ],
-      complianceRules: [
-        { value: '1-1-1', label: '1-1-1' },
-        { value: '2-2-2', label: '2-2-2' }
-      ],
-      patchingVersions: [
-        { value: '90523', label: '90523' },
-        { value: '85527', label: '85527' }
-      ]
-    };
+    logger.info('Solicitando historial de ejecuciones del formulario');
+    
+    // Buscar las ejecuciones relacionadas con el formulario
+    const executions = await RundeckExecution.find({})
+      .sort({ createdAt: -1 }) // Ordenar por fecha de creación descendente
+      .limit(50); // Limitar a las últimas 50 ejecuciones
+    
+    // Procesar las ejecuciones para asegurar que tienen la estructura correcta
+    const processedExecutions = executions.map(execution => {
+      const execData = execution.toObject();
+      
+      // Asegúrate de que los campos necesarios están presentes
+      // y estructurados correctamente
+      if (!execData.options) {
+        execData.options = {};
+      }
+      
+      // Si el changeType está en el nivel superior, asegúrate de que también esté en options
+      if (execData.changeType && !execData.options.changeType) {
+        execData.options.changeType = execData.changeType;
+      }
+      
+      // Normalizar otros campos si es necesario
+      if (execData.options.argString && typeof execData.options.argString === 'string') {
+        // Intentar extraer información del argString si es necesario
+        // Por ejemplo, si has guardado todo como argString
+        const changeTypeMatch = execData.options.argString.match(/-changeType "([^"]+)"/);
+        if (changeTypeMatch && changeTypeMatch[1]) {
+          execData.options.changeType = changeTypeMatch[1];
+        }
+        
+        // Y así con otros campos que necesites extraer
+      }
+      
+      return execData;
+    });
+    
+    logger.info(`Se encontraron ${processedExecutions.length} ejecuciones`);
     
     return res.status(200).json({
       success: true,
-      options: formOptions
+      count: processedExecutions.length,
+      executions: processedExecutions
     });
+    
   } catch (error) {
-    logger.error('Error al obtener opciones del formulario:', error);
+    logger.error('Error al obtener historial de ejecuciones:', error);
     
     res.status(500).json({
       success: false,
-      message: 'Error al obtener opciones del formulario',
+      message: 'Error al obtener historial de ejecuciones',
       details: error.message
     });
+  }
+};
+
+
+
+export const updateExecutionStatus = async (executionId) => {
+  try {
+    logger.info(`Actualizando estado de ejecución ID: ${executionId}`);
+    
+    // Comprobar que la ejecución existe en nuestra base de datos
+    const execution = await RundeckExecution.findOne({ executionId });
+    
+    if (!execution) {
+      logger.warn(`No se encontró la ejecución con ID: ${executionId}`);
+      return false;
+    }
+    
+    // Si ya está en un estado terminal (completado, fallido, abortado), no es necesario actualizar
+    if (['succeeded', 'failed', 'aborted'].includes(execution.status)) {
+      logger.debug(`La ejecución ${executionId} ya está en estado terminal: ${execution.status}`);
+      return true;
+    }
+    
+    // Consultar estado actual a Rundeck
+    const response = await axios.get(
+      `${RUNDECK_API_URL}/execution/${executionId}/state`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Rundeck-Auth-Token': RUNDECK_API_TOKEN
+        }
+      }
+    );
+    
+    // Actualizar el estado en nuestra base de datos
+    const rundeckStatus = response.data.executionState;
+    const mappedStatus = mapRundeckStatus(rundeckStatus);
+    
+    execution.status = mappedStatus;
+    
+    // Si está terminado, guardar la fecha de finalización
+    if (['succeeded', 'failed', 'aborted'].includes(mappedStatus)) {
+      execution.endedAt = new Date();
+    }
+    
+    // Guardar los cambios
+    await execution.save();
+    logger.info(`Estado de ejecución ${executionId} actualizado a: ${mappedStatus}`);
+    
+    return true;
+  } catch (error) {
+    logger.error(`Error al actualizar estado de ejecución ${executionId}:`, error);
+    return false;
+  }
+};
+
+/**
+ * Mapea los estados de Rundeck a nuestros estados internos
+ */
+function mapRundeckStatus(rundeckStatus) {
+  const statusMap = {
+    'running': 'running',
+    'succeeded': 'succeeded',
+    'failed': 'failed',
+    'aborted': 'aborted',
+    'scheduled': 'running',
+    'waiting': 'running'
+    // Añadir otros estados según sea necesario
+  };
+  
+  return statusMap[rundeckStatus] || 'unknown';
+}
+
+/**
+ * Actualiza el estado de todas las ejecuciones en progreso
+ * Esta función podría ejecutarse periódicamente mediante un job programado
+ */
+export const updateAllRunningExecutions = async () => {
+  try {
+    const runningExecutions = await RundeckExecution.find({
+      status: 'running'
+    });
+    
+    logger.info(`Actualizando estado de ${runningExecutions.length} ejecuciones en progreso`);
+    
+    const updatePromises = runningExecutions.map(execution => 
+      updateExecutionStatus(execution.executionId)
+    );
+    
+    await Promise.all(updatePromises);
+    
+    return true;
+  } catch (error) {
+    logger.error('Error al actualizar ejecuciones en progreso:', error);
+    return false;
   }
 };
