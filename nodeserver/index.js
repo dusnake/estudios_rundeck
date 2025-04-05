@@ -9,6 +9,7 @@ import routerAuth from "./routes/Auth_Route.js";
 import routerDragonBall from "./routes/DragonBall_Route.js";
 import routerRundeckForm from "./routes/RundeckForm_Route.js";
 import { startUpdateService } from "./services/RundeckCronApi_Service.js";
+import routerRundeckUpdate from './routes/RundeckUpdate_Route.js';
 
 
 // Cargar variables de entorno
@@ -54,6 +55,7 @@ app.use("/api", routerRundeckApi);
 app.use("/api", routerAuth); // Authldap
 app.use("/api", routerDragonBall);
 app.use("/api", routerRundeckForm);
+app.use("/api", routerRundeckUpdate); 
 
 
 app.listen(PORT, () => {

@@ -13,6 +13,7 @@ const rundeckExecutionSchema = new mongoose.Schema({
   },
   permalink: String,
   project: String,
+  cambiochg: String,
   changeType: String, // Tipo de cambio (nivel superior)
   specificOptions: mongoose.Schema.Types.Mixed, // Para guardar opciones específicas (nivel superior)
   machines: mongoose.Schema.Types.Mixed, // Para guardar máquinas (nivel superior)
@@ -36,6 +37,10 @@ const rundeckExecutionSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  cambiochg: {
+    type: String,
+    default: ''
   }
 });
 

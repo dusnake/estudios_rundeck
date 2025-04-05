@@ -60,17 +60,15 @@ export default function RundeckForm() {
   // Función asincrónica para obtener las ejecuciones desde MongoDB a través de la API
   const fetchExecutions = async () => {
     try {
-      // Establece el estado de carga
       setLoadingExecutions(true);
-      // Realiza la petición HTTP GET a la API
       const response = await axios.get('http://localhost:5001/api/rundeck/form-executions');
-      // Actualiza el estado con las ejecuciones obtenidas o un array vacío si no hay datos
       setExecutions(response.data.executions || []);
+      
+      // No hacemos scroll automático después de cargar 
+      // El usuario controlará cuándo y dónde hacer scroll
     } catch (error) {
-      // Maneja errores durante la carga
       console.error('Error al cargar las ejecuciones:', error);
     } finally {
-      // Independientemente del resultado, finaliza el estado de carga
       setLoadingExecutions(false);
     }
   };
@@ -584,6 +582,7 @@ const handleFilterChange = (filters) => {
                   <th>Detalles</th>
                   <th>Estado</th>
                   <th>Fecha</th>
+                  <th>CambioChg</th>
                 </tr>
               </thead>
               <tbody>
@@ -666,6 +665,11 @@ const handleFilterChange = (filters) => {
                     </td>
                     {/* Columna Fecha - con fecha formateada */}
                     <td>{formatDate(execution.createdAt || execution.startedAt)}</td>
+                    <td>
+                    <div className="cambiochg-container">
+                      <span>{execution.cambiochg || 'Sin valor'}</span>
+                    </div>
+                  </td>
                   </tr>
                 ))}
               </tbody>
