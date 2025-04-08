@@ -7,13 +7,3 @@ export const ListarDynatrace = async () => {
         throw new Error("Error al listar los Dynatraces");
     }
 }
-
-// export const AddDynatrace = async (body) => {
-//     try {
-//         return await Dynatrace.create(body);
-//     } catch {
-//         return {
-//             error: "Error al agregar el Dynatrace",
-//         };
-//     }
-// }

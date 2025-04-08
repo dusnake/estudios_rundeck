@@ -1,4 +1,5 @@
-import { executeRundeckJob, getExecutionStatus, listProjectJobs } from '../services/RundeckApi_Service.js';
+// import { executeRundeckJob, getExecutionStatus, listProjectJobs } from '../services/RundeckApi_Service.js';
+import { listProjectJobs } from '../services/RundeckApi_Service.js';
 import RundeckExecution from '../models/Rundeck_Exec_Model.js';
 import axios from 'axios';
 
@@ -155,7 +156,18 @@ export const listSavedExecutionsController = async (req, res) => {
       if (jobId) query.jobId = jobId;
       if (status) query.status = status;
       
-      const executions = await RundeckExecution.find(query)
+      const filter = {};
+      
+      // Safely apply filters only if they match expected values
+      if (jobId && typeof jobId === 'string') {
+        filter.jobId = jobId;
+      }
+      
+      if (status && ['running', 'succeeded', 'failed', 'aborted'].includes(status)) {
+        filter.status = status;
+      }
+      
+      const executions = await RundeckExecution.find(filter)
         .sort({ createdAt: -1 })
         .limit(100);
       
