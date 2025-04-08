@@ -2,6 +2,8 @@ import TabButton from "../TabButton/TabButton.jsx";
 import Section from "../Section/Section.jsx";
 import TabsMenu from "../TabsMenu/TabsMenu.jsx";
 import RundeckJobExecutor from "../RundeckJobExecutor/RundeckJobExecutor.jsx";
+import DragonBallList from "../DragonBallList/DragonBallList.jsx";
+import RundeckForm from "../RundeckForm/RundeckForm.jsx";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./MainMenu.css";
@@ -153,10 +155,25 @@ export default function MainMenu() {
           </div>
         </div>
       );
+    } else if (selectedTopic === 'pruebasAPI') {
+      // Nuevo contenido para Dragon Ball API
+      tabContent = (
+        <div id="tab-content">
+          <h3>Personajes de Dragon Ball</h3>
+          <DragonBallList />
+        </div>
+      );
+    } else if (selectedTopic === 'formulario') {
+      // Nuevo contenido para el formulario
+      tabContent = (
+        <div id="tab-content">
+          <RundeckForm />
+        </div>
+      );
     }
   }
 
-  // Botones del menú
+  // Botones del menú (agregamos el nuevo botón)
   const exampleButtons = (
     <>
       <TabButton 
@@ -173,6 +190,16 @@ export default function MainMenu() {
         onClick={() => handleClickMenu('dynatrace')}
         className={selectedTopic === 'dynatrace' ? 'active' : ''}>
         Dynatrace
+      </TabButton>
+      <TabButton 
+        onClick={() => handleClickMenu('pruebasAPI')}
+        className={selectedTopic === 'pruebasAPI' ? 'active' : ''}>
+        Pruebas API
+      </TabButton>
+      <TabButton 
+        onClick={() => handleClickMenu('formulario')}
+        className={selectedTopic === 'formulario' ? 'active' : ''}>
+        Cambios Auto
       </TabButton>
     </>
   );

@@ -40,11 +40,23 @@ export const getExecutionStatus = async (executionId) => {
 // Servicio para listar los jobs disponibles en un proyecto
 export const listProjectJobs = async (projectName) => {
     try {
+        console.log(`Solicitando jobs para el proyecto: ${projectName}`);
+        console.log(`URL: ${rundeckConfig.baseURL}/project/${projectName}/jobs`);
+        console.log('Headers:', rundeckConfig.headers);
+        
         const rundeckClient = axios.create(rundeckConfig);
-        const response = await rundeckClient.get(`/project/${projectName}/jobs`);
+        const response = await rundeckClient.post(`/project/${projectName}/jobs`, {});
+        
+        console.log(`Respuesta recibida para jobs de ${projectName}:`, response.status);
         return response.data;
     } catch (error) {
         console.error('Error obteniendo jobs del proyecto:', error.response?.data || error.message);
+        console.error('Status:', error.response?.status);
+        
+        if (error.response) {
+            console.error('Headers de respuesta:', error.response.headers);
+        }
+        
         throw new Error(`Error al obtener jobs del proyecto: ${error.message}`);
     }
 };

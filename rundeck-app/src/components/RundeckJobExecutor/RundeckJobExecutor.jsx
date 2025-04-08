@@ -258,7 +258,7 @@ const loadAllProjectsJobs = async () => {
     }
     
     // Si no lo encontramos, devolver una representación amigable del ID
-    return `Job ${jobId.substring(0, 8)}...`;
+    // return `Job ${jobId.substring(0, 8)}...`;
   };
 
   const getStatusClass = (status) => {

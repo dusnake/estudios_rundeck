@@ -6,7 +6,10 @@ import routerRundeck from "./routes/Rundeck_Route.js";
 import routerDynatrace from "./routes/Dynatrace_Route.js";
 import routerRundeckApi from "./routes/RundeckApi_Route.js";
 import routerAuth from "./routes/Auth_Route.js"; 
+import routerDragonBall from "./routes/DragonBall_Route.js";
+import routerRundeckForm from "./routes/RundeckForm_Route.js";
 import { startUpdateService } from "./services/RundeckCronApi_Service.js";
+import routerRundeckUpdate from './routes/RundeckUpdate_Route.js';
 
 
 // Cargar variables de entorno
@@ -50,6 +53,10 @@ app.use("/api", routerRundeck);
 app.use("/api", routerDynatrace);
 app.use("/api", routerRundeckApi);
 app.use("/api", routerAuth); // Authldap
+app.use("/api", routerDragonBall);
+app.use("/api", routerRundeckForm);
+app.use("/api", routerRundeckUpdate); 
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

@@ -29,25 +29,18 @@
   border-radius: 6px;
   background-color: #316C9C;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   
 }
 
 #tab-content h3 {
   margin: 0;
   text-align: center;
-  
 }
 
-#tab-content pre {
-  background-color: #141619;
-  border-radius: 1rem;
-  padding: 3rem;
-}
-
-#tab-content code {
-  font-size: 1rem;
-  color: #e5ff00;
-}
 
 .rundeck-list {
   display: grid;
