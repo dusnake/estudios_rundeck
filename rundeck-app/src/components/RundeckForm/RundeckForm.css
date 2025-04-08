@@ -687,3 +687,23 @@ details summary:hover {
   margin-bottom: 15px;
   align-items: flex-start;
 }
+
+/* Estilo para el contenedor de acciones de tabla */
+.table-actions {
+  display: flex;
+  justify-content: space-between; /* Distribuye el espacio entre los elementos */
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.left-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.right-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto; /* Empuja los elementos a la derecha */
+}

@@ -5,6 +5,7 @@ import './RundeckForm.css'; // Estilos específicos para el componente
 import { exportExecutionsToExcel } from '../../utils/ExcelExporter'; // Utilidad para exportar datos a Excel
 import ExcelExportButton from '../ExcelExportButton/ExcelExportButton'; // Componente botón para la exportación
 import ExecutionsFilter from '../ExecutionsFilter/ExecutionsFilter'; // Componente para filtrar ejecuciones
+import RefreshButton from '../RefreshButton/RefreshButton'; // Componente botón para refrescar
 
 
 export default function RundeckForm() {
@@ -32,6 +33,9 @@ export default function RundeckForm() {
   // Estados para manejar las ejecuciones de Rundeck recuperadas de MongoDB
   const [executions, setExecutions] = useState([]); // Lista de ejecuciones
   const [loadingExecutions, setLoadingExecutions] = useState(false); // Indica si se están cargando las ejecuciones
+
+  // Agregar estado para controlar si está refrescando
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Opciones para los selectores del formulario
   // Carga opciones desde variables de entorno (configuradas en .env)
@@ -70,6 +74,18 @@ export default function RundeckForm() {
       console.error('Error al cargar las ejecuciones:', error);
     } finally {
       setLoadingExecutions(false);
+    }
+  };
+
+  // Función para refrescar las ejecuciones
+  const handleRefreshExecutions = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchExecutions();
+    } catch (error) {
+      console.error('Error al refrescar ejecuciones:', error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -562,18 +578,31 @@ const handleFilterChange = (filters) => {
           />
         )}
         
-        {/* // Modificar la propiedad isDisabled para considerar filteredExecutions */}
-
-        {/* Botón para exportar a Excel - Componente separado */}
-        <ExcelExportButton 
-            onClick={handleExportToExcel}
-            isDisabled={loadingExecutions || filteredExecutions.length === 0}
-            title={filteredExecutions.length === 0 ? "No hay datos para exportar" : `Exportar ${filteredExecutions.length} ejecuciones a Excel`}
-        />
+        {/* Contenedor para los botones de acción */}
+        <div className="table-actions">
+          <div className="left-actions">
+            <ExcelExportButton 
+              onClick={handleExportToExcel}
+              isDisabled={loadingExecutions || filteredExecutions.length === 0}
+              title={filteredExecutions.length === 0 ? "No hay datos para exportar" : `Exportar ${filteredExecutions.length} ejecuciones a Excel`}
+            />
+          </div>
+          
+          <div className="right-actions">
+            <RefreshButton 
+              onClick={handleRefreshExecutions}
+              isDisabled={loadingExecutions}
+              isRefreshing={isRefreshing}
+              title="Actualizar lista de ejecuciones"
+            />
+          </div>
+        </div>
 
         {/* Muestra un indicador de carga, la tabla de ejecuciones o un mensaje si no hay datos */}
-        {loadingExecutions ? (
-          <div className="loading-indicator">Cargando ejecuciones...</div>
+        {loadingExecutions || isRefreshing ? (
+          <div className="loading-indicator">
+            {isRefreshing ? 'Actualizando ejecuciones...' : 'Cargando ejecuciones...'}
+          </div>
         ) : executions.length > 0 ? (
           <div className="executions-table-container">
             <table className="executions-table">
