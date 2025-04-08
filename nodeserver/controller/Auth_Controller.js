@@ -10,6 +10,10 @@ export const loginController = async (req, res) => {
     
     const authResult = await authenticateUserLDAP(username, password);
     
+    if (!authResult || !authResult.token) {
+      return res.status(401).json({ error: 'Autenticación fallida' });
+    }
+    
     return res.status(200).json({
       success: true,
       token: authResult.token,

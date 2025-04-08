@@ -46,7 +46,12 @@ export const authenticateUserLDAP = async (username, password) => {
     const roles = parseRolesFromLdapGroups(user.memberOf);
 
     // Buscar si el usuario existe en nuestra BD
-    let userInDb = await User.findOne({ username: username.toLowerCase() });
+    const normalizedUsername = username.toLowerCase().trim();
+    // Check if the username contains only valid characters
+    if (!/^[a-z0-9._-]+$/.test(normalizedUsername)) {
+      throw new Error('Invalid username format');
+    }
+    let userInDb = await User.findOne({ username: normalizedUsername });
 
     if (userInDb) {
       // Actualizar información del usuario existente
@@ -58,7 +63,7 @@ export const authenticateUserLDAP = async (username, password) => {
     } else {
       // Crear un nuevo usuario en la base de datos
       userInDb = await User.create({
-        username: username.toLowerCase(),
+        username: normalizedUsername, // Use the already validated and normalized username
         email: user.mail,
         fullName: user.cn,
         roles: roles,
