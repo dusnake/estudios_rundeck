@@ -17,7 +17,8 @@ const headers = {
 // Controlador para ejecutar un job
 export const runJobController = async (req, res) => {
     try {
-      const { jobId, options } = req.body;
+      // Modificar para recibir también el nombre del job
+      const { jobId, options, jobName } = req.body;
       
       if (!jobId) {
         return res.status(400).json({ error: 'Se requiere un jobId' });
@@ -26,6 +27,7 @@ export const runJobController = async (req, res) => {
       // Debug: Mostrar los datos recibidos
       console.log('Ejecutando job con los siguientes datos:');
       console.log('jobId:', jobId);
+      console.log('jobName:', jobName); // Añadir log para el nombre
       console.log('options:', options);
       console.log('headers:', headers);
       
@@ -38,10 +40,10 @@ export const runJobController = async (req, res) => {
       // Mostrar debug de los datos enviados
       console.log('Datos enviados a Rundeck:', {
         jobId,
+        jobName,
         options: options || {},
         headers
       });
-
 
       // Debug: Mostrar respuesta recibida
       console.log('Respuesta de Rundeck:', response.status);
@@ -49,14 +51,15 @@ export const runJobController = async (req, res) => {
       // Extraer información relevante de la respuesta
       const executionData = response.data;
       
-      // Guardar la información de la ejecución en MongoDB
+      // Guardar la información de la ejecución en MongoDB con el nombre del job
       const newExecution = new RundeckExecution({
         jobId,
+        jobName: jobName || executionData.job?.name || `Job ${jobId}`, // Usar el nombre proporcionado o el de la respuesta
         executionId: executionData.id,
         status: 'running',
         options: options || {},
         projectName: executionData.project,
-        description: executionData.job.name || `Ejecución del job ${jobId}`,
+        description: executionData.job?.name || `Ejecución del job ${jobId}`,
         permalink: executionData.permalink,
       });
   

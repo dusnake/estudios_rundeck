@@ -3,6 +3,8 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import axios from 'axios';
 import './RundeckJobExecutor.css';
 // import ExecutionSearch from '../ExecutionSearch/ExecutionSearch.jsx';
+import { getJobConfiguration } from '../../config/jobConfigurations';
+import DynamicJobForm from '../DynamicJobForm/DynamicJobForm';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -37,10 +39,8 @@ export default function RundeckJobExecutor({ initialProject = null, initialRunde
       .then((response) => {
         setListRundeck(response.data);
         setLoading(prev => ({ ...prev, rundeck: false }));
-        console.log("Datos de Rundeck obtenidos:", response.data);
       })
       .catch((error) => {
-        console.error("Error al obtener datos de Rundeck:", error);
         setError(prev => ({ 
           ...prev, 
           rundeck: "Error al cargar instancias de Rundeck" 
@@ -87,7 +87,6 @@ export default function RundeckJobExecutor({ initialProject = null, initialRunde
   // Función para cargar los jobs de todos los proyectos predefinidos
 const loadAllProjectsJobs = async () => {
   setLoadingAllJobs(true);
-  console.log('Cargando jobs de todos los proyectos para referencia...');
   
   const jobsMap = { ...allJobs };
   
@@ -103,7 +102,6 @@ const loadAllProjectsJobs = async () => {
         jobsMap[project] = filteredJobs;
       }
     } catch (err) {
-      console.error(`Error cargando jobs del proyecto ${project}:`, err);
       jobsMap[project] = [];
     }
   }
@@ -117,8 +115,6 @@ const loadAllProjectsJobs = async () => {
       setLoading(prev => ({ ...prev, general: true }));
       setError(null);
       
-      console.log(`Cargando jobs para el proyecto: ${project}`);
-      
       // Cargamos todos los jobs primero
       const response = await axios.get(`${API_BASE_URL}/rundeck/projects/${project}/jobs`);
       
@@ -129,13 +125,10 @@ const loadAllProjectsJobs = async () => {
         );
         
         setJobs(filteredJobs);
-        console.log(`Se cargaron ${filteredJobs.length} jobs con "iaas" en el nombre`);
       } else {
-        console.warn('La respuesta no contiene un array de jobs:', response.data);
         setJobs([]);
       }
     } catch (err) {
-      console.error('Error cargando jobs:', err);
       setError('Error cargando jobs: ' + (err.response?.data?.error || err.message));
       setJobs([]);
     } finally {
@@ -148,29 +141,36 @@ const loadAllProjectsJobs = async () => {
       const response = await axios.get(`${API_BASE_URL}/rundeck/saved-executions`);
       if (response.data && Array.isArray(response.data.executions)) {
         setRecentExecutions(response.data.executions || []);
-      } else {
-        console.error('Formato de respuesta inesperado para ejecuciones:', response.data);
       }
     } catch (err) {
-      console.error('Error al cargar ejecuciones recientes:', err);
+      // Error silencioso
     }
   };
 
-  const handleJobSelect = (job) => {
-    console.log('Job seleccionado:', job);
-    setSelectedJob(job);
-    
-    // Inicializar las opciones si el job tiene parámetros
-    if (job.options) {
-      const initialOptions = {};
-      job.options.forEach(option => {
-        initialOptions[option.name] = option.defaultValue || '';
-      });
-      setJobOptions(initialOptions);
-    } else {
-      setJobOptions({});
-    }
-  };
+  // Modificar la función handleJobSelect para cargar configuraciones personalizadas
+const handleJobSelect = (job) => {
+  setSelectedJob(job);
+  
+  // Obtener configuración personalizada para este job
+  const jobConfig = getJobConfiguration(job);
+  
+  // Inicializar opciones del job basadas en la configuración
+  let initialOptions = {};
+  
+  if (jobConfig && jobConfig.fields) {
+    // Usar la configuración personalizada
+    jobConfig.fields.forEach(field => {
+      initialOptions[field.name] = field.defaultValue || '';
+    });
+  } else if (job.options) {
+    // Usar las opciones predeterminadas del job
+    job.options.forEach(option => {
+      initialOptions[option.name] = option.defaultValue || '';
+    });
+  }
+  
+  setJobOptions(initialOptions);
+};
 
   const handleOptionChange = (e, optionName) => {
     setJobOptions(prev => ({
@@ -179,54 +179,76 @@ const loadAllProjectsJobs = async () => {
     }));
   };
 
-  const executeJob = async () => {
-    if (!selectedJob) {
-      setError('Por favor, selecciona un job antes de ejecutar');
+  // Función para manejar cambios en el formulario dinámico
+const handleDynamicFormChange = (fieldName, value) => {
+  setJobOptions(prev => ({
+    ...prev,
+    [fieldName]: value
+  }));
+};
+
+// Modificar la función executeJob para validar según la configuración
+const executeJob = async () => {
+  if (!selectedJob) {
+    setError('Por favor, selecciona un job antes de ejecutar');
+    return;
+  }
+  
+  // Obtener configuración para validación
+  const jobConfig = getJobConfiguration(selectedJob);
+  
+  // Validar campos si hay una función de validación
+  if (jobConfig && jobConfig.validate) {
+    const errors = jobConfig.validate(jobOptions);
+    
+    // Si hay errores de validación, mostrar el primero
+    if (Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+      setError(`Error de validación: ${errors[firstErrorField]}`);
       return;
     }
+  }
+  
+  try {
+    setLoading(prev => ({ ...prev, general: true }));
+    setError(null);
+    setExecutionId(null);
+    setExecutionStatus(null);
     
-    try {
-      setLoading(prev => ({ ...prev, general: true }));
-      setError(null);
-      setExecutionId(null);
-      setExecutionStatus(null);
-      
-      console.log('Ejecutando job con ID:', selectedJob.id, 'Opciones:', jobOptions);
-      
-      const response = await axios.post(`${API_BASE_URL}/rundeck/jobs/execute`, {
-        jobId: selectedJob.id,
-        options: jobOptions
-      });
-      
-      console.log('Respuesta de ejecución:', response.data);
-      
-      if (response.data && response.data.execution && response.data.execution.id) {
-        setExecutionId(response.data.execution.id);
-        setExecutionStatus('running');
-      } else if (response.data && response.data.id) {
-        setExecutionId(response.data.id);
-        setExecutionStatus('running');
-      } else {
-        setError('Respuesta inesperada del servidor al ejecutar el job');
-        console.error('Respuesta inesperada:', response.data);
-      }
-      
-      setLoading(prev => ({ ...prev, general: false }));
-      
-      // Recargar ejecuciones recientes
-      setTimeout(() => loadRecentExecutions(), 1000);
-    } catch (err) {
-      setLoading(prev => ({ ...prev, general: false }));
-      let errorMessage = `Error al ejecutar el job: ${err.message}`;
-      
-      if (err.response && err.response.data) {
-        errorMessage += ` - ${JSON.stringify(err.response.data)}`;
-      }
-      
-      setError(errorMessage);
-      console.error('Error al ejecutar el job:', err);
+    // Extraer el nombre del job
+    const jobName = selectedJob.name || selectedJob.jobName || `Job sin nombre`;
+    
+    const response = await axios.post(`${API_BASE_URL}/rundeck/jobs/execute`, {
+      jobId: selectedJob.id || selectedJob.jobId,
+      jobName: jobName, // Añadir el nombre del job
+      options: jobOptions
+    });
+    
+    if (response.data && response.data.execution && response.data.execution.id) {
+      setExecutionId(response.data.execution.id);
+      setExecutionStatus('running');
+    } else if (response.data && response.data.id) {
+      setExecutionId(response.data.id);
+      setExecutionStatus('running');
+    } else {
+      setError('Respuesta inesperada del servidor al ejecutar el job');
     }
-  };
+    
+    setLoading(prev => ({ ...prev, general: false }));
+    
+    // Recargar ejecuciones recientes
+    setTimeout(() => loadRecentExecutions(), 1000);
+  } catch (err) {
+    setLoading(prev => ({ ...prev, general: false }));
+    let errorMessage = `Error al ejecutar el job: ${err.message}`;
+    
+    if (err.response && err.response.data) {
+      errorMessage += ` - ${JSON.stringify(err.response.data)}`;
+    }
+    
+    setError(errorMessage);
+  }
+};
 
   const checkExecutionStatus = async (id) => {
     try {
@@ -246,7 +268,7 @@ const loadAllProjectsJobs = async () => {
         }
       }
     } catch (err) {
-      console.error('Error al verificar estado de ejecución:', err);
+      // Error silencioso
     }
   };
 
@@ -256,9 +278,7 @@ const loadAllProjectsJobs = async () => {
     if (allJobs[jobId]) {
       return allJobs[jobId].name || allJobs[jobId].jobName || jobId;
     }
-    
     // Si no lo encontramos, devolver una representación amigable del ID
-    // return `Job ${jobId.substring(0, 8)}...`;
   };
 
   const getStatusClass = (status) => {
@@ -275,13 +295,40 @@ const loadAllProjectsJobs = async () => {
     return date.toLocaleString();
   };
 
-  // Procesamiento de ejecuciones para mostrar nombres de jobs
-  const processedExecutions = useMemo(() => {
-    return recentExecutions.map(execution => ({
+  // Función para procesar ejecuciones y obtener nombres de jobs
+const processedExecutions = useMemo(() => {
+  return recentExecutions.map(execution => {
+    // Priorizar el campo jobName guardado específicamente, luego buscar otras fuentes
+    let resolvedName = 
+      execution.jobName ||  // Usar primero el nombre guardado directamente
+      execution.job?.name || 
+      execution.description || 
+      'Job sin nombre';
+    
+    // Si tenemos un jobId y no tenemos el jobName, intentamos encontrarlo en allJobs
+    if (execution.jobId && !execution.jobName) {
+      // Buscar en todos los proyectos
+      for (const projectName in allJobs) {
+        const projectJobs = allJobs[projectName];
+        const matchingJob = projectJobs.find(job => 
+          (job.id && job.id === execution.jobId) || 
+          (job.jobId && job.jobId === execution.jobId)
+        );
+        
+        if (matchingJob) {
+          // Encontramos el job, usamos su nombre
+          resolvedName = matchingJob.name || matchingJob.jobName;
+          break;
+        }
+      }
+    }
+    
+    return {
       ...execution,
-      jobName: execution.description || getJobName(execution.jobId)
-    }));
-  }, [recentExecutions, allJobs]);
+      resolvedJobName: resolvedName // Nombre resuelto para mostrar en la UI
+    };
+  });
+}, [recentExecutions, allJobs]);
 
   return (
     <div className="rundeck-job-executor">
@@ -328,20 +375,13 @@ const loadAllProjectsJobs = async () => {
             
             {jobs.length > 0 ? (
               <ul className="job-list">
-                {jobs.map(job => {
+                {jobs.map((job, index) => {
                   // Crear un identificador único para cada job
                   const jobUniqueId = job.id || job.jobId || job.uuid;
                   const selectedJobId = selectedJob?.id || selectedJob?.jobId || selectedJob?.uuid;
                   
                   // Comparación estricta para saber si este job es el seleccionado
                   const isSelected = selectedJob && jobUniqueId === selectedJobId;
-                  
-                  // Añadir log para depuración (puedes eliminar esto después)
-                  if (isSelected) {
-                    console.log('Job seleccionado:', job.name);
-                    console.log('ID job actual:', jobUniqueId);
-                    console.log('ID job seleccionado:', selectedJobId);
-                  }
                   
                   return (
                     <li 
@@ -367,7 +407,14 @@ const loadAllProjectsJobs = async () => {
             <h3>{selectedJob.name || selectedJob.jobName || 'Job seleccionado'}</h3>
             {selectedJob.description && <p className="job-description">{selectedJob.description}</p>}
             
-            {selectedJob.options && selectedJob.options.length > 0 && (
+            {/* Usar el componente de formulario dinámico si hay configuración personalizada */}
+            {getJobConfiguration(selectedJob) ? (
+              <DynamicJobForm 
+                jobConfig={getJobConfiguration(selectedJob)}
+                formValues={jobOptions}
+                onChange={handleDynamicFormChange}
+              />
+            ) : selectedJob.options && selectedJob.options.length > 0 ? (
               <div className="job-options">
                 <h4>Opciones</h4>
                 {selectedJob.options.map(option => (
@@ -388,13 +435,15 @@ const loadAllProjectsJobs = async () => {
                   </div>
                 ))}
               </div>
+            ) : (
+              <p className="no-options-message">Este job no tiene opciones configurables</p>
             )}
             
             <button 
               className="execute-button"
               onClick={() => {
                 if (window.confirm(`¿Estás seguro que deseas ejecutar el job "${selectedJob.name || selectedJob.jobName || 'seleccionado'}"?`)) {
-              executeJob();
+                  executeJob();
                 }
               }}
               disabled={loading.general}
@@ -443,7 +492,7 @@ const loadAllProjectsJobs = async () => {
                 <th>Job</th>
                 <th>Estado</th>
                 <th>Inicio</th>
-                <th>Fin</th>
+                {/* Eliminada la columna "Fin" */}
               </tr>
             </thead>
             <tbody>
@@ -456,16 +505,13 @@ const loadAllProjectsJobs = async () => {
                     </a>
                   </td>
                   <td className="job-name">
-                    <div className="tooltip-container">
-                      {execution.description}
-                      {/* <span className="tooltip-text">ID: {execution.jobId}</span> */}
-                    </div>
+                    {execution.resolvedJobName || 'Job sin nombre'}
                   </td>
                   <td className={`execution-status ${getStatusClass(execution.status)}`}>
                     {execution.status}
                   </td>
                   <td className="execution-date">{formatDate(execution.startedAt)}</td>
-                  <td className="execution-date">{formatDate(execution.endedAt)}</td>
+                  {/* Eliminada la celda que mostraba la hora de finalización */}
                 </tr>
               ))}
             </tbody>

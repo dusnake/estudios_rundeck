@@ -191,11 +191,11 @@ export default function MainMenu() {
         className={selectedTopic === 'dynatrace' ? 'active' : ''}>
         Dynatrace
       </TabButton>
-      <TabButton 
+      {/* <TabButton 
         onClick={() => handleClickMenu('pruebasAPI')}
         className={selectedTopic === 'pruebasAPI' ? 'active' : ''}>
         Pruebas API
-      </TabButton>
+      </TabButton> */}
       <TabButton 
         onClick={() => handleClickMenu('formulario')}
         className={selectedTopic === 'formulario' ? 'active' : ''}>

@@ -24,6 +24,8 @@ const rundeckExecutionSchema = new mongoose.Schema({
     machinesList: [String], // Lista procesada de máquinas
     argString: String
   },
+  jobId: String,
+  jobName: String, // Nuevo campo para el nombre del job
   startedAt: {
     type: Date,
     default: Date.now
