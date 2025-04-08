@@ -385,7 +385,7 @@ const processedExecutions = useMemo(() => {
                   
                   return (
                     <li 
-                      key={jobUniqueId || Math.random().toString()}
+                      key={jobUniqueId || `job-${index}`}
                       className={isSelected ? 'selected' : ''}
                       onClick={() => handleJobSelect(job)}
                     >
