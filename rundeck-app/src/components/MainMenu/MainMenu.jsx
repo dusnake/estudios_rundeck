@@ -2,7 +2,7 @@ import TabButton from "../TabButton/TabButton.jsx";
 import Section from "../Section/Section.jsx";
 import TabsMenu from "../TabsMenu/TabsMenu.jsx";
 import RundeckJobExecutor from "../RundeckJobExecutor/RundeckJobExecutor.jsx";
-import DragonBallList from "../DragonBallList/DragonBallList.jsx";
+// import DragonBallList from "../DragonBallList/DragonBallList.jsx";
 import RundeckForm from "../RundeckForm/RundeckForm.jsx";
 import { useState, useEffect } from "react";
 import axios from "axios";

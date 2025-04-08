@@ -328,15 +328,31 @@ const loadAllProjectsJobs = async () => {
             
             {jobs.length > 0 ? (
               <ul className="job-list">
-                {jobs.map(job => (
-                  <li 
-                    key={job.id || job.jobId || Math.random().toString()}
-                    className={selectedJob && (selectedJob.id === job.id || selectedJob.jobId === job.jobId) ? 'selected' : ''}
-                    onClick={() => handleJobSelect(job)}
-                  >
-                    {job.name || job.jobName || 'Job sin nombre'}
-                  </li>
-                ))}
+                {jobs.map(job => {
+                  // Crear un identificador único para cada job
+                  const jobUniqueId = job.id || job.jobId || job.uuid;
+                  const selectedJobId = selectedJob?.id || selectedJob?.jobId || selectedJob?.uuid;
+                  
+                  // Comparación estricta para saber si este job es el seleccionado
+                  const isSelected = selectedJob && jobUniqueId === selectedJobId;
+                  
+                  // Añadir log para depuración (puedes eliminar esto después)
+                  if (isSelected) {
+                    console.log('Job seleccionado:', job.name);
+                    console.log('ID job actual:', jobUniqueId);
+                    console.log('ID job seleccionado:', selectedJobId);
+                  }
+                  
+                  return (
+                    <li 
+                      key={jobUniqueId || Math.random().toString()}
+                      className={isSelected ? 'selected' : ''}
+                      onClick={() => handleJobSelect(job)}
+                    >
+                      {job.name || job.jobName || 'Job sin nombre'}
+                    </li>
+                  );
+                })}
               </ul>
             ) : !loading && !error ? (
               <p className="no-jobs-message">No hay jobs disponibles para este proyecto</p>

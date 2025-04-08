@@ -425,22 +425,24 @@ const handleFilterChange = (filters) => {
         {/* Selector tipo "chips" para Compliance - solo se muestra si el tipo de cambio es 'compliance' */}
         {formData.changeType === 'compliance' && (
           <div className="form-group">
-            <label>Opciones de Compliance:</label>
+            <label htmlFor="complianceOptions">Opciones de Compliance:</label>
             {/* Contenedor de opciones tipo "chip" */}
             <div className="compliance-options-container">
               {/* Mapea las opciones para generar elementos seleccionables */}
               {complianceOptions.map(option => (
-                <div 
+                <button 
                   key={option.value}
+                  type="button"
                   className={`compliance-option ${formData.complianceOptions.includes(option.value) ? 'selected' : ''}`}
                   onClick={() => handleComplianceOptionClick(option.value)}
+                  aria-pressed={formData.complianceOptions.includes(option.value)}
                 >
                   {option.label}
-                </div>
+                </button>
               ))}
-            </div>
-            
-            {/* Lista de opciones seleccionadas - solo se muestra si hay opciones seleccionadas */}
+              </div>
+
+              {/* Lista de opciones seleccionadas - solo se muestra si hay opciones seleccionadas */}
             {formData.complianceOptions.length > 0 && (
               <div className="selected-options">
                 <div className="selected-options-header">Reglas seleccionadas:</div>

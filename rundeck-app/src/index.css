@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap");
 @import "tailwindcss";
-@theme {
+:root {
   --font-roboto: "Roboto", sans-serif; 
   --color-regal-blue: #243c5a; 
 }

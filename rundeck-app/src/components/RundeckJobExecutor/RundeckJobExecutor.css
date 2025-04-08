@@ -229,7 +229,6 @@
   .executions-table a:link {
     text-decoration: none;
     color: #007bff;
-    text-decoration: underline;
   }
 
   .executions-table a:visited {

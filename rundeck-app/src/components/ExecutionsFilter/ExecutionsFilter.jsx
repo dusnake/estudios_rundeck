@@ -21,9 +21,23 @@ export default function ExecutionsFilter({ executions, onFilterChange, changeTyp
   useEffect(() => {
     if (executions && executions.length > 0) {
       // Extraer estados únicos de las ejecuciones
+      // Define el orden de prioridad para los estados
+      const statusOrder = {
+        'running': 1,
+        'succeeded': 2, 
+        'failed': 3,
+        'aborted': 4,
+        'desconocido': 5
+      };
+      
+      // Extraer estados únicos y ordenarlos según prioridad definida
       const uniqueStatuses = [...new Set(executions.map(exec => 
         exec.status || 'Desconocido'
-      ))].sort();
+      ))].sort((a, b) => {
+        const aValue = statusOrder[a.toLowerCase()] || 999;
+        const bValue = statusOrder[b.toLowerCase()] || 999;
+        return aValue - bValue;
+      });
       
       // Normalizar los estados para asegurar consistencia
       const normalizedStatuses = uniqueStatuses.map(status => ({
