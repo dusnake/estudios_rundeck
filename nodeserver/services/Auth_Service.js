@@ -46,7 +46,7 @@ export const authenticateUserLDAP = async (username, password) => {
     const roles = parseRolesFromLdapGroups(user.memberOf);
 
     // Buscar si el usuario existe en nuestra BD
-    const normalizedUsername = username.toLowerCase().trim();
+    const normalizedUsername = username.toLowerCase().trim().toString();
     // Check if the username contains only valid characters
     if (!/^[a-z0-9._-]+$/.test(normalizedUsername)) {
       throw new Error('Invalid username format');

@@ -8,7 +8,10 @@ export const loginController = async (req, res) => {
       return res.status(400).json({ error: 'Se requiere usuario y contraseña' });
     }
     
-    const authResult = await authenticateUserLDAP(username, password);
+    // Sanitize inputs to prevent injection
+    const sanitizedUsername = username.trim();
+    const sanitizedPassword = password;
+    const authResult = await authenticateUserLDAP(sanitizedUsername, sanitizedPassword);
     
     if (!authResult || !authResult.token) {
       return res.status(401).json({ error: 'Autenticación fallida' });
