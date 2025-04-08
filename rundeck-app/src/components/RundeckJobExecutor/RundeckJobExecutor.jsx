@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { confirmDialog } from 'primereact/confirmdialog';
+import { ConfirmDialog } from 'primereact/confirmdialog';
 import axios from 'axios';
 import './RundeckJobExecutor.css';
+import { getJobConfiguration } from './jobConfigurations';
 // import ExecutionSearch from '../ExecutionSearch/ExecutionSearch.jsx';
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -27,6 +29,7 @@ export default function RundeckJobExecutor({ initialProject = null, initialRunde
   const [selectedRundeck, setSelectedRundeck] = useState(initialRundeck);
   const [loadingAllJobs, setLoadingAllJobs] = useState(false);
   const [listRundeck, setListRundeck] = useState([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
 
   // Recuperar datos de Rundeck
@@ -160,15 +163,39 @@ const loadAllProjectsJobs = async () => {
     console.log('Job seleccionado:', job);
     setSelectedJob(job);
     
-    // Inicializar las opciones si el job tiene parámetros
-    if (job.options) {
+    // Obtener la configuración predefinida para este job
+    const jobName = job.name || job.jobName;
+    const jobConfig = getJobConfiguration(jobName);
+    
+    if (jobConfig) {
+      console.log(`Configuración predefinida encontrada para job: ${jobName}`, jobConfig);
+      
+      // Inicializar las opciones con los valores por defecto de la configuración
       const initialOptions = {};
-      job.options.forEach(option => {
-        initialOptions[option.name] = option.defaultValue || '';
+      jobConfig.fields.forEach(field => {
+        initialOptions[field.name] = field.default || '';
       });
+      
       setJobOptions(initialOptions);
+      
+      // Enriquecemos el job seleccionado con la configuración personalizada
+      setSelectedJob({
+        ...job,
+        customConfig: jobConfig
+      });
     } else {
-      setJobOptions({});
+      // Fallback al comportamiento anterior si no hay configuración predefinida
+      console.log(`No se encontró configuración predefinida para job: ${jobName}`);
+      
+      if (job.options) {
+        const initialOptions = {};
+        job.options.forEach(option => {
+          initialOptions[option.name] = option.defaultValue || '';
+        });
+        setJobOptions(initialOptions);
+      } else {
+        setJobOptions({});
+      }
     }
   };
 
@@ -183,6 +210,15 @@ const loadAllProjectsJobs = async () => {
     if (!selectedJob) {
       setError('Por favor, selecciona un job antes de ejecutar');
       return;
+    }
+    
+    // Si el job tiene configuración personalizada, validamos sus campos
+    if (selectedJob.customConfig) {
+      const validationErrors = selectedJob.customConfig.validate(jobOptions);
+      if (validationErrors && validationErrors.length > 0) {
+        setError(`Errores de validación: ${validationErrors.join(', ')}`);
+        return;
+      }
     }
     
     try {
@@ -285,6 +321,9 @@ const loadAllProjectsJobs = async () => {
 
   return (
     <div className="rundeck-job-executor">
+      {/* Añade esto en la parte superior de tu componente */}
+      <ConfirmDialog />
+      
       {/* SELECTOR PROYECTO       */}
       <div className="job-selector-panel">
         <h3>Selector de Rundeck</h3>
@@ -331,7 +370,12 @@ const loadAllProjectsJobs = async () => {
                 {jobs.map(job => (
                   <li 
                     key={job.id || job.jobId || Math.random().toString()}
-                    className={selectedJob && (selectedJob.id === job.id || selectedJob.jobId === job.jobId) ? 'selected' : ''}
+                    className={
+                      selectedJob && 
+                      JSON.stringify(job) === JSON.stringify(selectedJob)
+                        ? 'selected' 
+                        : ''
+                    }
                     onClick={() => handleJobSelect(job)}
                   >
                     {job.name || job.jobName || 'Job sin nombre'}
@@ -351,7 +395,84 @@ const loadAllProjectsJobs = async () => {
             <h3>{selectedJob.name || selectedJob.jobName || 'Job seleccionado'}</h3>
             {selectedJob.description && <p className="job-description">{selectedJob.description}</p>}
             
-            {selectedJob.options && selectedJob.options.length > 0 && (
+            {/* Renderizamos opciones según la configuración personalizada o las opciones del job */}
+            {selectedJob.customConfig ? (
+              <div className="job-options">
+                <h4>{selectedJob.customConfig.title || 'Opciones'}</h4>
+                
+                {selectedJob.customConfig.fields.map(field => (
+                  <div key={field.name} className="option-field">
+                    <label>
+                      {field.label}
+                      {field.required && <span className="required">*</span>}:
+                    </label>
+                    
+                    {field.type === 'select' ? (
+                      <select
+                        value={jobOptions[field.name] || ''}
+                        onChange={(e) => handleOptionChange(e, field.name)}
+                        className="option-input select-input"
+                        required={field.required}
+                      >
+                        <option value="">-- Seleccionar --</option>
+                        {field.options && field.options.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.type === 'textarea' ? (
+                      <textarea
+                        value={jobOptions[field.name] || ''}
+                        onChange={(e) => handleOptionChange(e, field.name)}
+                        placeholder={field.description || ''}
+                        className="option-input textarea-input"
+                        rows={4}
+                        required={field.required}
+                      />
+                    ) : field.type === 'checkbox' ? (
+                      <div className="checkbox-container">
+                        <input
+                          type="checkbox"
+                          checked={jobOptions[field.name] === 'true'}
+                          onChange={(e) => handleOptionChange({
+                            target: { value: e.target.checked ? 'true' : 'false' }
+                          }, field.name)}
+                          id={`option-${field.name}`}
+                          className="option-checkbox"
+                        />
+                        <label htmlFor={`option-${field.name}`} className="checkbox-label"></label>
+                      </div>
+                    ) : field.type === 'number' ? (
+                      <input
+                        type="number"
+                        value={jobOptions[field.name] || ''}
+                        onChange={(e) => handleOptionChange(e, field.name)}
+                        placeholder={field.description || ''}
+                        className="option-input"
+                        min={field.min}
+                        max={field.max}
+                        required={field.required}
+                      />
+                    ) : (
+                      <input 
+                        type="text"
+                        value={jobOptions[field.name] || ''}
+                        onChange={(e) => handleOptionChange(e, field.name)}
+                        placeholder={field.description || ''}
+                        className="option-input"
+                        required={field.required}
+                      />
+                    )}
+                    
+                    {field.description && (
+                      <small className="option-description">{field.description}</small>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : selectedJob.options && selectedJob.options.length > 0 ? (
+              /* Formulario existente para opciones originales del job */
               <div className="job-options">
                 <h4>Opciones</h4>
                 {selectedJob.options.map(option => (
@@ -365,6 +486,7 @@ const loadAllProjectsJobs = async () => {
                       value={jobOptions[option.name] || ''}
                       onChange={(e) => handleOptionChange(e, option.name)}
                       placeholder={option.description || option.name}
+                      className="option-input"
                     />
                     {option.description && (
                       <small className="option-description">{option.description}</small>
@@ -372,20 +494,47 @@ const loadAllProjectsJobs = async () => {
                   </div>
                 ))}
               </div>
+            ) : (
+              <p className="no-options-message">Este job no tiene opciones configurables</p>
             )}
             
             <button 
               className="execute-button"
-              onClick={() => {
-                if (window.confirm(`¿Estás seguro que deseas ejecutar el job "${selectedJob.name || selectedJob.jobName || 'seleccionado'}"?`)) {
-              executeJob();
-                }
-              }}
+              onClick={() => setShowConfirmDialog(true)}
               disabled={loading.general}
             >
               {loading.general ? 'Ejecutando...' : 'Ejecutar Job'}
             </button>
 
+            {showConfirmDialog && (
+              <div className="custom-confirm-overlay">
+                <div className="custom-confirm-dialog">
+                  <h4>Confirmar ejecución</h4>
+                  <p>¿Estás seguro que deseas ejecutar el job "{selectedJob.name || selectedJob.jobName || 'seleccionado'}"?</p>
+                  <div className="custom-confirm-actions">
+                    <button 
+                      className="confirm-cancel-btn"
+                      onClick={() => setShowConfirmDialog(false)}
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      className="confirm-execute-btn"
+                      onClick={() => {
+                        setShowConfirmDialog(false);
+                        executeJob();
+                      }}
+                    >
+                      Ejecutar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {error && <div className="error">{error}</div>}
+
+            {/* Sección de estado de ejecución existente */}
             {executionId && (
               <div className="execution-status">
                 <h4>Estado de la ejecución</h4>

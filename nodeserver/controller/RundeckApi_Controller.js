@@ -155,9 +155,24 @@ export const listSavedExecutionsController = async (req, res) => {
       if (jobId) query.jobId = jobId;
       if (status) query.status = status;
       
+      // Get pagination parameters from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Default 20, max 100
+      const skip = (page - 1) * limit;
+      
+      // Validate pagination parameters
+      if (page < 1 || limit < 1) {
+        return res.status(400).json({ error: 'Invalid pagination parameters' });
+      }
+      
+      // Execute query with pagination
       const executions = await RundeckExecution.find(query)
         .sort({ createdAt: -1 })
-        .limit(100);
+        .skip(skip)
+        .limit(limit);
+      
+      // Get total count for pagination info
+      const totalCount = await RundeckExecution.countDocuments(query);
       
       res.status(200).json({
         success: true,

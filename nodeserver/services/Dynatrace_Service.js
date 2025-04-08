@@ -8,12 +8,12 @@ export const ListarDynatrace = async () => {
     }
 }
 
-export const AddDynatrace = async (body) => {
-    try {
-        return await Dynatrace.create(body);
-    } catch {
-        return {
-            error: "Error al agregar el Dynatrace",
-        };
-    }
-}
+// export const AddDynatrace = async (body) => {
+//     try {
+//         return await Dynatrace.create(body);
+//     } catch {
+//         return {
+//             error: "Error al agregar el Dynatrace",
+//         };
+//     }
+// }

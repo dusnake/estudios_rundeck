@@ -8,12 +8,12 @@ export const ListarRundeck = async () => {
     }
 }
 
-export const AddRundeck = async (body) => {
-    try {
-        return await Rundeck.create(body);
-    } catch {
-        return {
-            error: "Error al agregar el rundeck",
-        };
-    }
-}
+// export const AddRundeck = async (body) => {
+//     try {
+//         return await Rundeck.create(body);
+//     } catch {
+//         return {
+//             error: "Error al agregar el rundeck",
+//         };
+//     }
+// }
