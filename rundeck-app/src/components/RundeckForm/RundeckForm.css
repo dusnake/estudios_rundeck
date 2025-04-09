@@ -707,3 +707,58 @@ details summary:hover {
   gap: 10px;
   margin-left: auto; /* Empuja los elementos a la derecha */
 }
+
+/* Añadir esto al final del archivo CSS existente */
+
+.date-range-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.date-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.date-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.date-field input[type="date"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .date-range-container {
+    flex-direction: column;
+  }
+}
+
+/* Modificación para campos de fecha y hora */
+.date-field input[type="datetime-local"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #2c3038;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #23272f;
+  color: #e4e7ea;
+}
+
+.date-field input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8); /* Hace que el icono del calendario sea más claro */
+}
+
+.date-field input[type="datetime-local"]:focus {
+  border-color: #03d5ff;
+  box-shadow: 0 0 0 2px rgba(3, 213, 255, 0.2);
+  outline: none;
+}

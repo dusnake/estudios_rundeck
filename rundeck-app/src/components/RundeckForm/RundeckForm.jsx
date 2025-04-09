@@ -15,7 +15,9 @@ export default function RundeckForm() {
     changeType: '',           // Tipo de cambio seleccionado (compliance, patching, etc.)
     machines: '',             // Lista de máquinas ingresadas como texto
     complianceOptions: [],    // Opciones de compliance seleccionadas (para el tipo compliance)
-    patchingVersion: ''       // Versión de patching seleccionada (para el tipo patching)
+    patchingVersion: '',      // Versión de patching seleccionada (para el tipo patching)
+    startDate: '',            // Fecha de inicio para compliance y patching
+    endDate: ''               // Fecha de fin para compliance y patching
   });
 
   // Nuevo estado para manejar las ejecuciones filtradas
@@ -107,7 +109,9 @@ export default function RundeckForm() {
         ...prev,
         [name]: value,
         complianceOptions: [], // Reinicia opciones de compliance
-        patchingVersion: '' // Reinicia versión de patching
+        patchingVersion: '', // Reinicia versión de patching
+        startDate: '', // Reinicia fecha de inicio
+        endDate: '' // Reinicia fecha de fin
       }));
     } else {
       // Para otros campos, simplemente actualiza el valor correspondiente
@@ -195,6 +199,29 @@ export default function RundeckForm() {
       });
       hasError = true;
     }
+    // Validación de fechas para compliance y patching
+    else if ((formData.changeType === 'compliance' || formData.changeType === 'patching')) {
+      // Validar que ambas fechas estén presentes
+      if (!formData.startDate || !formData.endDate) {
+        setSubmitStatus({
+          loading: false,
+          error: "Por favor, seleccione fecha de inicio y fecha de fin.",
+          success: false,
+          response: null
+        });
+        hasError = true;
+      }
+      // Validar que la fecha de fin sea posterior a la de inicio
+      else if (new Date(formData.endDate) < new Date(formData.startDate)) {
+        setSubmitStatus({
+          loading: false,
+          error: "La fecha de fin debe ser posterior a la fecha de inicio.",
+          success: false,
+          response: null
+        });
+        hasError = true;
+      }
+    }
     
     // Si hay algún error de validación, detiene la ejecución
     if (hasError) {
@@ -226,10 +253,20 @@ export default function RundeckForm() {
         // Para compliance, envía el array de opciones seleccionadas
         dataToSend.specificOptions = formData.complianceOptions;
         dataToSend.options.specificOptions = formData.complianceOptions;
+        // Añadir las fechas
+        dataToSend.startDate = formData.startDate;
+        dataToSend.endDate = formData.endDate;
+        dataToSend.options.startDate = formData.startDate;
+        dataToSend.options.endDate = formData.endDate;
       } else if (formData.changeType === 'patching') {
         // Para patching, envía la versión seleccionada
         dataToSend.specificOptions = formData.patchingVersion;
         dataToSend.options.specificOptions = formData.patchingVersion;
+        // Añadir las fechas
+        dataToSend.startDate = formData.startDate;
+        dataToSend.endDate = formData.endDate;
+        dataToSend.options.startDate = formData.startDate;
+        dataToSend.options.endDate = formData.endDate;
       }
       
       // Envía los datos a la API mediante una solicitud POST
@@ -253,7 +290,9 @@ export default function RundeckForm() {
         changeType: '',
         machines: '',
         complianceOptions: [],
-        patchingVersion: ''
+        patchingVersion: '',
+        startDate: '',
+        endDate: ''
       });
       
       // Limpia el mensaje de éxito después de 5 segundos
@@ -482,6 +521,32 @@ const handleFilterChange = (filters) => {
                 </div>
               </div>
             )}
+            
+            {/* Campos de fecha y hora para Compliance */}
+            <div className="date-range-container">
+              <div className="date-field">
+                <label htmlFor="startDate">Fecha y hora de inicio:</label>
+                <input 
+                  type="datetime-local" 
+                  id="startDate" 
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </div>
+              <div className="date-field">
+                <label htmlFor="endDate">Fecha y hora de fin:</label>
+                <input 
+                  type="datetime-local" 
+                  id="endDate" 
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </div>
+            </div>
           </div>
         )}
         
@@ -504,6 +569,32 @@ const handleFilterChange = (filters) => {
                 </option>
               ))}
             </select>
+            
+            {/* Campos de fecha y hora para Patching */}
+            <div className="date-range-container">
+              <div className="date-field">
+                <label htmlFor="startDate">Fecha y hora de inicio:</label>
+                <input 
+                  type="datetime-local" 
+                  id="startDate" 
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </div>
+              <div className="date-field">
+                <label htmlFor="endDate">Fecha y hora de fin:</label>
+                <input 
+                  type="datetime-local" 
+                  id="endDate" 
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </div>
+            </div>
           </div>
         )}
         

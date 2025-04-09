@@ -71,11 +71,11 @@
 .category-button {
   padding: 8px 16px;
   border-radius: 20px;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background-color: #acb1b6;
+  border: 1px solid #4dd0d2;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: #47494a;
   transition: all 0.2s;
 }
 
@@ -97,7 +97,7 @@
 }
 
 .news-card {
-  background-color: white;
+  background-color: rgb(55, 54, 54);
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -163,7 +163,7 @@
 }
 
 .card-summary {
-  color: #7f8c8d;
+  color: #b5c0c0;
   line-height: 1.6;
   margin-bottom: 15px;
 }
