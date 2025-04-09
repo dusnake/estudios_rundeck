@@ -4,6 +4,7 @@ import TabsMenu from "../TabsMenu/TabsMenu.jsx";
 import RundeckJobExecutor from "../RundeckJobExecutor/RundeckJobExecutor.jsx";
 // import DragonBallList from "../DragonBallList/DragonBallList.jsx";
 import RundeckForm from "../RundeckForm/RundeckForm.jsx";
+import Home from "../Home/Home.jsx";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./MainMenu.css";
@@ -170,12 +171,28 @@ export default function MainMenu() {
           <RundeckForm />
         </div>
       );
+      
+    } else if (selectedTopic === 'home') {
+      // Nuevo contenido para el formulario
+      tabContent = (
+        <div id="tab-content">
+          <Home />
+        </div>
+      );
+      
     }
   }
 
   // Botones del menú (agregamos el nuevo botón)
   const exampleButtons = (
     <>
+
+      <TabButton 
+        onClick={() => handleClickMenu('home')}
+        className={selectedTopic === 'home' ? 'active' : ''}>
+        Home
+      </TabButton>
+
       <TabButton 
         onClick={() => handleClickMenu('rundeck')}
         className={selectedTopic === 'rundeck' ? 'active' : ''}>
