@@ -76,6 +76,15 @@ export default function Home() {
               key={item.id} 
               className={`news-card ${expandedCardId === item.id ? 'expanded' : ''}`}
               onClick={() => toggleCardExpansion(item.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleCardExpansion(item.id);
+                }
+              }}
+              tabIndex="0"
+              role="button"
+              aria-expanded={expandedCardId === item.id}
             >
               <div className="card-image-container">
                 <img src={item.image} alt={item.title} className="card-image" />

@@ -13,7 +13,14 @@ export default function Header() {
   return (
     <header className="header">
       <div className="logo-container">
-        <div onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+        <div 
+          onClick={handleLogoClick} 
+          onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()}
+          tabIndex={0}
+          role="button"
+          aria-label="Go to home page"
+          style={{ cursor: 'pointer' }}
+        >
           <img src={reactImage} alt="Logo" className="logo" />
         </div>
         <h1 
@@ -27,6 +34,10 @@ export default function Header() {
             text-transparent 
             drop-shadow-lg"
           onClick={handleLogoClick}
+          onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()}
+          tabIndex={0}
+          role="button"
+          aria-label="Go to home page"
           style={{ cursor: 'pointer' }}
         >
           Web IaaS
