@@ -6,8 +6,36 @@ import { exportExecutionsToExcel } from '../../utils/ExcelExporter'; // Utilidad
 import ExcelExportButton from '../ExcelExportButton/ExcelExportButton'; // Componente botón para la exportación
 import ExecutionsFilter from '../ExecutionsFilter/ExecutionsFilter'; // Componente para filtrar ejecuciones
 import RefreshButton from '../RefreshButton/RefreshButton'; // Componente botón para refrescar
-import DateTimeRangePicker from '../DateTimeRangePicker/DateTimeRangePicker'; // Componente para seleccionar rango de fecha y hora
 
+// Componente reutilizable para los campos de fecha y hora
+const DateTimeRangePicker = ({ startDate, endDate, handleChange }) => {
+  return (
+    <div className="date-range-container">
+      <div className="date-field">
+        <label htmlFor="startDate">Fecha y hora de inicio:</label>
+        <input 
+          type="datetime-local" 
+          id="startDate" 
+          name="startDate"
+          value={startDate}
+          onChange={handleChange}
+          className="form-control"
+        />
+      </div>
+      <div className="date-field">
+        <label htmlFor="endDate">Fecha y hora de fin:</label>
+        <input 
+          type="datetime-local" 
+          id="endDate" 
+          name="endDate"
+          value={endDate}
+          onChange={handleChange}
+          className="form-control"
+        />
+      </div>
+    </div>
+  );
+};
 
 export default function RundeckForm() {
   // Estado para manejar los datos del formulario
