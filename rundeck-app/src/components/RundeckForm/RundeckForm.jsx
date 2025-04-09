@@ -6,6 +6,7 @@ import { exportExecutionsToExcel } from '../../utils/ExcelExporter'; // Utilidad
 import ExcelExportButton from '../ExcelExportButton/ExcelExportButton'; // Componente botón para la exportación
 import ExecutionsFilter from '../ExecutionsFilter/ExecutionsFilter'; // Componente para filtrar ejecuciones
 import RefreshButton from '../RefreshButton/RefreshButton'; // Componente botón para refrescar
+import DateTimeRangePicker from '../DateTimeRangePicker/DateTimeRangePicker'; // Componente para seleccionar rango de fecha y hora
 
 
 export default function RundeckForm() {
@@ -522,31 +523,12 @@ const handleFilterChange = (filters) => {
               </div>
             )}
             
-            {/* Campos de fecha y hora para Compliance */}
-            <div className="date-range-container">
-              <div className="date-field">
-                <label htmlFor="startDate">Fecha y hora de inicio:</label>
-                <input 
-                  type="datetime-local" 
-                  id="startDate" 
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  className="form-control"
-                />
-              </div>
-              <div className="date-field">
-                <label htmlFor="endDate">Fecha y hora de fin:</label>
-                <input 
-                  type="datetime-local" 
-                  id="endDate" 
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  className="form-control"
-                />
-              </div>
-            </div>
+            {/* Usar DateRangePicker en lugar de código duplicado */}
+            <DateTimeRangePicker 
+              startDate={formData.startDate}
+              endDate={formData.endDate}
+              handleChange={handleChange}
+            />
           </div>
         )}
         
@@ -570,31 +552,12 @@ const handleFilterChange = (filters) => {
               ))}
             </select>
             
-            {/* Campos de fecha y hora para Patching */}
-            <div className="date-range-container">
-              <div className="date-field">
-                <label htmlFor="startDate">Fecha y hora de inicio:</label>
-                <input 
-                  type="datetime-local" 
-                  id="startDate" 
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  className="form-control"
-                />
-              </div>
-              <div className="date-field">
-                <label htmlFor="endDate">Fecha y hora de fin:</label>
-                <input 
-                  type="datetime-local" 
-                  id="endDate" 
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  className="form-control"
-                />
-              </div>
-            </div>
+            {/* Usar DateRangePicker en lugar de código duplicado */}
+            <DateTimeRangePicker 
+              startDate={formData.startDate}
+              endDate={formData.endDate}
+              handleChange={handleChange}
+            />
           </div>
         )}
         
